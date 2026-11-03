@@ -27,7 +27,6 @@ const AGENT_IMAGE_FORMATS: Record<string, string> = {
   png: 'image/png',
   webp: 'image/webp',
   gif: 'image/gif',
-  avif: 'image/avif',
 }
 
 /** A user-facing failure with the HTTP status the paste-URL endpoint has always returned. */
@@ -80,12 +79,15 @@ async function fetchFollowingSafeRedirects(url: string): Promise<PinnedResponse>
   }
 }
 
-async function sniffImageMime(buffer: Buffer): Promise<string> {
-  const format = await sharp(buffer)
+/**
+ * The stored MIME type, from the bytes. sharp reports every HEIF container as `heif`; only the
+ * AV1-compressed ones are AVIF (HEIC is `hevc` and is not accepted — browsers cannot show it).
+ */
+export async function sniffImageMime(buffer: Buffer): Promise<string> {
+  const meta = await sharp(buffer)
     .metadata()
-    .then((m) => m.format)
     .catch(() => undefined)
-  const mime = format ? AGENT_IMAGE_FORMATS[format] : undefined
+  const mime = meta?.format === 'heif' ? (meta.compression === 'av1' ? 'image/avif' : undefined) : meta?.format ? AGENT_IMAGE_FORMATS[meta.format] : undefined
   if (!mime) {
     throw new MediaImportError(400, 'Chỉ nhập được ảnh JPEG, PNG, WebP, GIF hoặc AVIF. / Only JPEG, PNG, WebP, GIF or AVIF images can be imported.')
   }
