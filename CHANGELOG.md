@@ -4,6 +4,15 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-03
+
+### Fixed
+
+- **WordPress migration, media phase:** `Media` gained the hidden `sourceMediaId` idempotency key (migration `20261103_052647_media_source_media_id`). Without it every media lookup failed, so featured images, sliders and inline images were not imported.
+- **WordPress migration, re-runs:** media referenced only by URL (site logo, OG images) is keyed by a hash of its source URL and no longer re-uploaded on each run.
+- **WordPress migration, source hosts with a port** (e.g. `127.0.0.1:8080`) are now matched when rewriting canonicals, menus and internal links.
+- `--dry-run` on an empty database no longer reports missing inline-image targets as errors.
+
 ## [1.0.0] - 2026-11-03
 
 First public release of KDIGI CMS (MIT), a headless multi-site CMS on Payload 3.90, Next.js 15 and PostgreSQL. It is extracted from a production multi-site system and generalised for agencies, bloggers, small businesses and people migrating off WordPress.
@@ -26,5 +35,6 @@ First public release of KDIGI CMS (MIT), a headless multi-site CMS on Payload 3.
 
 Domain-specific modules, optional CDN tooling, cloning pipelines and all site-specific one-off importers and fixtures from the private origin were not carried over to the open-source product.
 
-[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kdigivn/kdigi-cms-open/releases/tag/v1.0.0

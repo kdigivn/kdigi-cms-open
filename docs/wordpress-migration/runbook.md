@@ -54,6 +54,8 @@ export WP_POST_TYPES=portfolio,event               # custom post type cần arch
 export WP_UTC_OFFSET=+07:00                        # múi giờ của WordPress (xem bước 1.3)
 ```
 
+> **Lưu ý.** `node --env-file=.env` **không ghi đè** biến đã `export` sẵn trong shell: nếu shell của bạn đang export `DATABASE_URI`/`PAYLOAD_SECRET` thì giá trị đó thắng `.env`. Kiểm tra `echo "$DATABASE_URI"` trước khi import, hoặc truyền tường minh: `env DATABASE_URI=… PAYLOAD_SECRET=… node --env-file=.env --import tsx …`.
+
 ### 0.3 Kiểm tra nhanh nguồn WordPress
 
 ```bash
@@ -269,6 +271,7 @@ SEO defaults… cấu hình ở admin sau import.
 
 - Sửa `staged/` → `--gate lint` → `--gate lock` → chạy lại phase cần thiết (`--from content --to seo`).
 - Content phase chỉ ghi khi dữ liệu khác bản đang có (hash); rating đang có trên CMS không bị hạ xuống.
+- Chạy lại `--from content --to media` khôi phục thân bài từ `staged/` rồi viết lại URL ảnh theo CMS; ảnh đã upload được nhận lại qua `media.sourceMediaId` (id WordPress, hoặc `url:<sha1>` cho ảnh chỉ có URL như logo/OG) nên không upload trùng.
 - Phase `taxonomy` không xóa term trừ khi có file `.delete-*.json`.
 
 ## 5. Media, menu, SEO, redirect — kiểm sâu
@@ -318,7 +321,7 @@ Kiểm cả trailing slash và không có chuỗi redirect (A → B → C). Chi 
 ## 6. Checklist nghiệm thu
 
 - [ ] Số lượng posts/pages/products/taxonomies/media/menus/comments trong CMS = `staged/` (trừ phần cố ý xóa/bỏ).
-- [ ] Idempotent: chạy lại `--from content --to content` ⇒ `created: 0, updated: 0`.
+- [ ] Idempotent: chạy lại toàn bộ `--from schema --to redirects` ⇒ số doc mỗi collection (kể cả media) **không đổi**, log `created: 0`. Bài/page có ảnh trong thân luôn báo `updated` ở phase `content` (phase này ghi lại `contentMd` gốc từ `staged/`, rồi phase `media` thay lại URL CMS) — đó là bình thường; menu và site-config cũng được ghi lại mỗi lần.
 - [ ] 10 URL ngẫu nhiên + toàn bộ URL trong sitemap WP cũ: mở được hoặc redirect 301 đúng đích.
 - [ ] Thân bài không còn Markdown thô, `[shortcode]`, chữ dính nhau; bảng và ảnh hiển thị đủ.
 - [ ] Ảnh thực sự load được (HTTP 200 + trình duyệt decode), featured image đúng bài.

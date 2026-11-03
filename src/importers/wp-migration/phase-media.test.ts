@@ -5,7 +5,18 @@ import {
   resolveMediaRefForUrl,
   rewriteImageUrls,
 } from './phase-media'
+import { mediaSourceKey } from './import-context'
 import type { StagedMediaRef } from './staged-doc-types'
+
+describe('mediaSourceKey', () => {
+  it('uses the WP id when known, else a stable hash of the URL without query/hash (fits maxLength 64)', () => {
+    assert.equal(mediaSourceKey(42, 'https://wp.example.com/a.png'), '42')
+    const a = mediaSourceKey(null, 'https://wp.example.com/wp-content/uploads/logo.png?x=1#h')
+    assert.equal(a, mediaSourceKey(undefined, 'https://wp.example.com/wp-content/uploads/logo.png'))
+    assert.notEqual(a, mediaSourceKey(null, 'https://wp.example.com/wp-content/uploads/2023/logo.png'))
+    assert.match(a, /^url:[0-9a-f]{40}$/)
+  })
+})
 
 const cfg = {
   site: 'blog',

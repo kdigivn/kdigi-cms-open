@@ -24,6 +24,12 @@ describe('buildSiteConfig', () => {
     assert.equal(cfg.language, 'en')
   })
 
+  it('keeps a non-default port in the host so URL-matching regexes see it', () => {
+    const cfg = buildSiteConfig({ site: 'a', wpUrl: 'http://127.0.0.1:8080/', domain: 'example.test' })
+    assert.equal(cfg.wpHost, '127.0.0.1:8080')
+    assert.equal(cfg.publicHost, '127.0.0.1:8080')
+  })
+
   it('rejects invalid site keys, URLs and languages', () => {
     assert.throws(() => buildSiteConfig({ site: 'Bad Key', wpUrl: 'https://a.test', domain: 'a.test' }), /site key/)
     assert.throws(() => buildSiteConfig({ site: 'ok', wpUrl: 'not a url', domain: 'a.test' }), /--wp-url/)

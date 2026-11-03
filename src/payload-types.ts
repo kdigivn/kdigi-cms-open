@@ -796,6 +796,10 @@ export interface Media {
    */
   externalUrl?: string | null;
   /**
+   * WordPress attachment id (set by the WP importer; used to avoid duplicates on re-import).
+   */
+  sourceMediaId?: string | null;
+  /**
    * Cache-bust token — bump trên mỗi lần sửa ảnh để CDN trả bytes mới.
    */
   version?: number | null;
@@ -2290,6 +2294,7 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   tenant?: T;
   externalUrl?: T;
+  sourceMediaId?: T;
   version?: T;
   _objectKey?: T;
   folder?: T;

@@ -30,7 +30,8 @@ const SITE_KEY_RE = /^[a-z0-9][a-z0-9-]*$/
 
 function hostOf(url: string, label: string): string {
   try {
-    return new URL(url).hostname.toLowerCase()
+    // `.host` keeps a non-default port (a WP staging on :8080) so host-matching regexes see the same string as the URLs.
+    return new URL(url).host.toLowerCase()
   } catch {
     throw new Error(`${label} is not a valid absolute URL: ${url}`)
   }

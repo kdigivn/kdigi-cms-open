@@ -507,6 +507,10 @@ export async function runMediaPhase(ctx: ImportContext): Promise<void> {
 
       const docId = await findBySlugTenant(ctx, collection, doc.slug)
       if (!docId) {
+        if (ctx.dryRun) {
+          log(`DRY inline images of ${collection}/${doc.slug} (not imported yet) would be rewritten`)
+          continue
+        }
         linkFailures++
         log(`ERROR inline image target missing ${collection}/${doc.slug}`)
         continue

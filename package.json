@@ -1,6 +1,6 @@
 {
   "name": "kdigi-cms",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "KDIGI CMS — open-source multi-site headless CMS (Payload 3 + Next.js + Postgres)",
   "license": "MIT",
   "author": "KDIGI <https://kdigi.vn>",

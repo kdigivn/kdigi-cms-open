@@ -2,6 +2,7 @@
  * Shared context for the import phases: Payload instance, site id, staged
  * readers, media resolver, and dry-run aware write helpers.
  */
+import { createHash } from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import type { BasePayload } from 'payload'
@@ -167,9 +168,22 @@ export async function resolveMediaByUrl(ctx: ImportContext, url: string): Promis
 }
 
 /**
+ * Idempotency key stored in `media.sourceMediaId`: the WordPress attachment id
+ * when known, otherwise `url:<sha1 of the source URL without query/hash>` (site
+ * icons, knowledge-graph logos and OG images are referenced by URL only).
+ * A filename lookup is NOT usable: Payload renames colliding uploads
+ * (`logo.png` → `logo-1.png`), so a URL-only ref would be re-uploaded on every run.
+ */
+export function mediaSourceKey(wpId: number | string | null | undefined, sourceUrl: string): string {
+  if (wpId != null) return String(wpId)
+  const stable = sourceUrl.split('#')[0].split('?')[0]
+  return `url:${createHash('sha1').update(stable).digest('hex')}`
+}
+
+/**
  * Ensure a media doc exists for a staged media ref. Prefers the mirrored
  * binary in raw/media/files/; falls back to fetching sourceUrl. Idempotent on
- * sourceMediaId (WP attachment id) first, then externalUrl.
+ * `sourceMediaId` (see {@link mediaSourceKey}).
  */
 export async function ensureMediaDoc(
   ctx: ImportContext,
@@ -179,49 +193,21 @@ export async function ensureMediaDoc(
   const sourceUrl = ref.sourceUrl
   if (!sourceUrl) return null
   const wpId = 'wp' in ref ? ref.wp.databaseId : ref.wpId
+  const sourceKey = mediaSourceKey(wpId, sourceUrl)
 
   // Every lookup MUST be site-scoped: WP attachment ids are only unique
   // within one WP site, and different sites migrated from different WP
   // installs reuse the same ids (and even the same source URLs). Without the
   // tenant filter, a shared multi-site DB resolves refs to another site's
   // media — cross-site featured images and wrong-CDN links.
-  if (wpId != null) {
-    const byWpId = await ctx.payload.find({
-      collection: 'media',
-      where: { and: [{ sourceMediaId: { equals: String(wpId) } }, { tenant: { equals: ctx.tenantId } }] },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    if (byWpId.docs[0]) return byWpId.docs[0].id
-  }
-  const byUrl = await ctx.payload.find({
+  const existing = await ctx.payload.find({
     collection: 'media',
-    where: { and: [{ externalUrl: { equals: sourceUrl } }, { tenant: { equals: ctx.tenantId } }] },
+    where: { and: [{ sourceMediaId: { equals: sourceKey } }, { tenant: { equals: ctx.tenantId } }] },
     limit: 1,
     depth: 0,
     overrideAccess: true,
   })
-  if (byUrl.docs[0]) return byUrl.docs[0].id
-
-  // Refs without a WP attachment id (site-config icons, curated slider
-  // refs) get neither sourceMediaId nor externalUrl on create, so the two
-  // lookups above can never find them again — every import re-run downloaded
-  // the binary and created a duplicate ("foo-1.webp", "foo-2.webp", …).
-  // Fall back to the uploaded filename within this site.
-  if (wpId == null) {
-    const filename = (sourceUrl.split('/').pop() || '').split('?')[0]
-    if (filename) {
-      const byFilename = await ctx.payload.find({
-        collection: 'media',
-        where: { and: [{ filename: { equals: filename } }, { tenant: { equals: ctx.tenantId } }] },
-        limit: 1,
-        depth: 0,
-        overrideAccess: true,
-      })
-      if (byFilename.docs[0]) return byFilename.docs[0].id
-    }
-  }
+  if (existing.docs[0]) return existing.docs[0].id
 
   const alt = ('alt' in ref && ref.alt) || altFallback || path.basename(sourceUrl)
   if (ctx.dryRun) {
@@ -252,7 +238,7 @@ export async function ensureMediaDoc(
       // when present — setting it alongside a real `file:` upload below would
       // permanently pin `url` to the old WP/legacy CDN instead of the file we
       // just uploaded to this site's own storage (R2 or local disk).
-      ...(wpId != null ? { sourceMediaId: String(wpId) } : {}),
+      sourceMediaId: sourceKey,
       tenant: ctx.tenantId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,

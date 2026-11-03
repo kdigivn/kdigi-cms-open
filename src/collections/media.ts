@@ -152,6 +152,19 @@ export const Media: MediaConfig = {
       },
     },
     {
+      // WordPress attachment id written by the WP importer so re-runs are idempotent
+      // (src/importers/wp-migration/import-context.ts → ensureMediaDoc). Unique per site, not globally.
+      name: 'sourceMediaId',
+      type: 'text',
+      index: true,
+      maxLength: 64,
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: 'WordPress attachment id (set by the WP importer; used to avoid duplicates on re-import).',
+      },
+    },
+    {
       // Phase 6: cache-bust token. Bumped on every image edit so the
       // afterRead hook can append `?v=<version>` to the URL. CDNs that
       // vary cache by query string (Cloudflare with the matching Cache
