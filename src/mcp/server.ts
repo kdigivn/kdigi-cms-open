@@ -7,7 +7,7 @@ import { registerResources } from './resources'
 import { registerTools } from './tools'
 
 /** Server version reported to clients; bump with the root package version. */
-export const MCP_SERVER_VERSION = '1.1.0'
+export const MCP_SERVER_VERSION = '1.2.0'
 
 /** A fresh server per HTTP request (stateless transport); tools close over the key owner. */
 export function buildMcpServer(ctx: AgentContext): McpServer {

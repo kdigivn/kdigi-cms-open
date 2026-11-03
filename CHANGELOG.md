@@ -4,6 +4,10 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-03
+
+AI-native release. No database migrations; API-key sessions are restricted (see Changed).
+
 ### Added
 
 - **AI-native: MCP server at `POST /api/mcp`.** 23 tools for AI agents (Claude Code, Codex, Cursor, VS Code, OMP, …) to search, write, schedule, publish, trash/restore, version, audit SEO and manage media and taxonomies, plus the resource `kcms://guide/content` and the prompts `write-post` / `refresh-seo`. Authentication is a user API key in `Authorization: Bearer …`; every call runs as that user with normal access rules, honours admin edit locks and requires `expectedUpdatedAt` for writes to existing documents. Enabled by default; `MCP_ENABLED=false` turns it off. See [docs/ai-integration.md](docs/ai-integration.md).
@@ -15,6 +19,7 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 - **Behaviour change — API-key sessions are restricted on all REST/GraphQL routes:** they can no longer create users or change email, password, API key, API-key switch, role or site membership, and can no longer permanently delete anything (content can still be moved to the trash). Browser sessions are unaffected. See [roles and permissions](docs/roles-and-permissions.md#api-keys-and-ai-agents).
 - **`/api/media/from-url`:** downloads are pinned to the DNS answer that passed the SSRF check (no DNS-rebinding window) and every redirect hop is re-checked. Called with an API key it runs with the caller's access and accepts JPEG/PNG/WebP/GIF/AVIF only (type sniffed from the bytes).
 - Author publish attempts now fail with HTTP `403` instead of a generic `500`.
+- README, `package.json` description and the docs index now present KDIGI CMS as an AI-native CMS; `docs/architecture.md` documents the agent surface (`src/agent-api`, `src/mcp`, `packages/kcms-cli`, `skills/kcms`).
 
 ### Fixed
 
@@ -61,7 +66,8 @@ First public release of KDIGI CMS (MIT), a headless multi-site CMS on Payload 3.
 
 Domain-specific modules, optional CDN tooling, cloning pipelines and all site-specific one-off importers and fixtures from the private origin were not carried over to the open-source product.
 
-[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kdigivn/kdigi-cms-open/releases/tag/v1.0.0
