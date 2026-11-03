@@ -12,7 +12,7 @@
  * The legacy `items` array is kept (hidden) for rollback during rollout.
  */
 import type { CollectionConfig, CollectionAfterDeleteHook, CollectionAfterReadHook } from 'payload'
-import { tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
+import { tenantScopedDelete, tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
 import { triggerRevalidate, triggerRevalidateAfterDelete } from '../hooks/trigger-revalidate'
 import type { MenuNode } from '../lib/menu-tree-types'
 import { treeToRest } from '../lib/menu-tree-to-rest'
@@ -90,7 +90,7 @@ export const Menus: CollectionConfig = {
     },
     create: tenantScopedWrite,
     update: tenantScopedWrite,
-    delete: tenantScopedWrite,
+    delete: tenantScopedDelete,
   },
   hooks: {
     afterRead: [projectTreeToItems],

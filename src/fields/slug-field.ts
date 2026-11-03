@@ -8,6 +8,21 @@
  */
 import type { Field } from 'payload'
 
+/** The slug the field derives from a title (Vietnamese-aware); shared with agent slug pre-checks. */
+export function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    // Đ/đ don't decompose under NFD (they're base letters, not letter+combining-mark),
+    // so the strip-diacritics step below silently drops them instead of folding to "d".
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .normalize('NFD')
+    // Strip combining diacritical marks (e.g. Vietnamese tones)
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 export const slugField = (): Field => ({
   name: 'slug',
   type: 'text',
@@ -33,17 +48,7 @@ export const slugField = (): Field => ({
 
         if (!title) return value
 
-        return title
-          .toLowerCase()
-          // Đ/đ don't decompose under NFD (they're base letters, not letter+combining-mark),
-          // so the strip-diacritics step below silently drops them instead of folding to "d".
-          .replace(/đ/g, 'd')
-          .replace(/Đ/g, 'D')
-          .normalize('NFD')
-          // Strip combining diacritical marks (e.g. Vietnamese tones)
-          .replace(/[̀-ͯ]/g, '')
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '')
+        return slugifyTitle(title)
       },
     ],
   },

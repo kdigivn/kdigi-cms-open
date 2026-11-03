@@ -10,7 +10,9 @@
  *   - single-locale save  → field value is a string
  *   - locale="all" save   → field value is a { vi, en, ... } record (fill per locale)
  *
- * No-ops on partial updates that don't include contentMd.
+ * No-ops on partial updates that don't include contentMd, and on partial updates that send
+ * contentMd WITHOUT an `excerpt` key while the stored excerpt is already filled — only the admin
+ * form re-posts every field, so an absent key from an API client means "unchanged", not "blank".
  */
 import type { CollectionBeforeChangeHook } from 'payload'
 import { markdownToPlainText } from '../lib/vietnamese-text'
@@ -25,7 +27,7 @@ function deriveExcerpt(markdown: unknown): string | undefined {
 
 const isFilled = (v: unknown): boolean => typeof v === 'string' && v.trim().length > 0
 
-export const autoFillExcerpt: CollectionBeforeChangeHook = ({ data }) => {
+export const autoFillExcerpt: CollectionBeforeChangeHook = ({ data, originalDoc }) => {
   if (!data) return data
   const md = data.contentMd
   const excerpt = data.excerpt
@@ -45,6 +47,7 @@ export const autoFillExcerpt: CollectionBeforeChangeHook = ({ data }) => {
 
   // single-locale save: contentMd is a string.
   if (isFilled(excerpt)) return data
+  if (excerpt === undefined && isFilled((originalDoc as { excerpt?: unknown } | undefined)?.excerpt)) return data
   const derived = deriveExcerpt(md)
   return derived ? { ...data, excerpt: derived } : data
 }

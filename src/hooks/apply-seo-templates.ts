@@ -346,7 +346,13 @@ export function makeApplySeoTemplatesHook(docType: DocType): CollectionBeforeCha
       (site.domain as string) ||
       ''
 
-    const existingBreadcrumbs = seo.breadcrumbs
+    // A partial update (API clients; only the admin form re-posts every field) that omits
+    // seo.breadcrumbs means "unchanged": judge blankness on the stored trail, otherwise a hand-set
+    // or imported trail (incl. isHidden flags) would be regenerated over.
+    const existingBreadcrumbs =
+      seo.breadcrumbs !== undefined
+        ? seo.breadcrumbs
+        : (originalDoc?.seo as { breadcrumbs?: unknown } | undefined)?.breadcrumbs
     const docSlug = (data.slug ?? originalDoc?.slug) as string | undefined
     const frontPageGroup = Array.isArray(site.pageGroup)
       ? (site.pageGroup as Array<{ key?: unknown; pageSlug?: unknown }>).find(

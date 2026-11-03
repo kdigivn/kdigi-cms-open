@@ -1,6 +1,7 @@
 import type { Access } from 'payload'
 
 import { isSuperAdminUser, userTenantIds, type TenantUser } from '../lib/admin-selected-tenant'
+import { isApiKeySession } from '../lib/api-key-session'
 
 /**
  * Tenant-scoped read access: super-admin sees all; all other roles see only their tenant(s).
@@ -47,6 +48,13 @@ export const tenantScopedWrite: Access = ({ req: { user } }) => {
   if (!tenantIds.length) return false
   return { tenant: { in: tenantIds } }
 }
+
+/**
+ * Delete access for tenant data without a trash (media, taxonomies, menus, …): `tenantScopedWrite`,
+ * but never from an API-key session — the delete is irreversible (media also loses its file), and
+ * a leaked key must not be able to wipe a site.
+ */
+export const tenantScopedDelete: Access = (args) => (isApiKeySession(args.req.user) ? false : tenantScopedWrite(args))
 
 /**
  * Create access for collections whose rows must belong to a tenant (e.g. `media`,

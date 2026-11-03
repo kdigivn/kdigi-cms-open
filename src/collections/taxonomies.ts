@@ -5,7 +5,7 @@
  * Self-referential `parent` allows tree structures (categories with children).
  */
 import type { CollectionAfterDeleteHook, CollectionConfig } from 'payload'
-import { tenantScopedRead, tenantScopedWrite, tenantScopedVersionsRead } from '../access/tenant-scoped'
+import { tenantScopedDelete, tenantScopedRead, tenantScopedWrite, tenantScopedVersionsRead } from '../access/tenant-scoped'
 import { seoFieldGroup } from '../fields/seo-field-group'
 import { markdownHtmlField } from '../fields/markdown-html-field'
 import { makeApplySeoTemplatesHook } from '../hooks/apply-seo-templates'
@@ -47,7 +47,7 @@ export const Taxonomies: CollectionConfig = {
     },
     create: tenantScopedWrite,
     update: tenantScopedWrite,
-    delete: tenantScopedWrite,
+    delete: tenantScopedDelete,
   },
   hooks: {
     // Auto-fill blank seo.title/description from the site's taxonomies template on save.

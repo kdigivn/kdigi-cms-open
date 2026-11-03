@@ -16,6 +16,7 @@ import type { CollectionConfig } from 'payload'
 import { resolveUploadTenantId } from '../lib/resolve-upload-tenant'
 import {
   hasAnyTenantOrSuperAdmin,
+  tenantScopedDelete,
   tenantScopedRead,
   tenantScopedWrite,
 } from '../access/tenant-scoped'
@@ -38,7 +39,7 @@ export function foldersCollectionOverride({
       read: tenantScopedRead,
       create: hasAnyTenantOrSuperAdmin,
       update: tenantScopedWrite,
-      delete: tenantScopedWrite,
+      delete: tenantScopedDelete,
     },
     fields: [
       ...collection.fields,

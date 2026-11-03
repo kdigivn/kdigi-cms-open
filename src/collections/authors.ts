@@ -7,7 +7,7 @@
  * email is not exposed in REST reads (privacy guard).
  */
 import type { CollectionAfterDeleteHook, CollectionConfig, Where } from 'payload'
-import { tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
+import { tenantScopedDelete, tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
 import { triggerRevalidate, triggerRevalidateAfterDelete } from '../hooks/trigger-revalidate'
 
 /** Resolve a tenant ID from either a string or relationship object. */
@@ -41,7 +41,7 @@ export const Authors: CollectionConfig = {
     },
     create: tenantScopedWrite,
     update: tenantScopedWrite,
-    delete: tenantScopedWrite,
+    delete: tenantScopedDelete,
   },
   hooks: {
     beforeValidate: [

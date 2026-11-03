@@ -8,34 +8,6 @@ export const FETCH_TIMEOUT_MS = 15_000
  *  could otherwise stream multi-GB into memory within the fetch timeout. */
 export const MAX_BODY_BYTES = 25 * 1024 * 1024 // 25 MB
 
-/**
- * Read a fetch Response body into a Buffer, enforcing a hard byte cap.
- * Returns null when the body exceeds `maxBytes` (caller maps to 422).
- */
-export async function readBodyCapped(resp: Response, maxBytes: number): Promise<Buffer | null> {
-  // Fast reject on an honest Content-Length before reading anything.
-  const declared = Number(resp.headers.get('content-length') ?? NaN)
-  if (Number.isFinite(declared) && declared > maxBytes) return null
-
-  const reader = resp.body?.getReader()
-  if (!reader) return Buffer.alloc(0)
-  const chunks: Uint8Array[] = []
-  let total = 0
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    if (value) {
-      total += value.byteLength
-      if (total > maxBytes) {
-        await reader.cancel().catch(() => undefined)
-        return null
-      }
-      chunks.push(value)
-    }
-  }
-  return Buffer.concat(chunks.map((c) => Buffer.from(c)))
-}
-
 export function validateUrl(raw: unknown): string {
   if (typeof raw !== 'string' || raw.length === 0) {
     throw new Error('url is required')

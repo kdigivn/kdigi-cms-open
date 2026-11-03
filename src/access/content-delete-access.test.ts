@@ -5,7 +5,7 @@ import type { Access } from 'payload'
 
 import { makeContentDeleteAccess } from './content-delete-access'
 
-type User = { id: number; role: string; tenants?: Array<{ tenant: number }> }
+type User = { id: number; role: string; tenants?: Array<{ tenant: number }>; _strategy?: string }
 
 function call(access: Access, user: User | null, data?: Record<string, unknown>) {
   return access({ req: { user } as never, data } as never)
@@ -48,5 +48,13 @@ describe('makeContentDeleteAccess — trash vs permanent × role × createdBy', 
     assert.deepEqual(call(withCreatedBy, adminA), { tenant: { in: ['10'] } })
     assert.equal(call(withCreatedBy, superAdmin), true)
     assert.equal(call(withCreatedBy, superAdmin, TRASH), true)
+  })
+
+  it('API-key sessions may trash but never permanently delete, even as super-admin', () => {
+    const adminKey: User = { ...adminA, _strategy: 'api-key' }
+    const superKey: User = { ...superAdmin, _strategy: 'api-key' }
+    assert.equal(call(withCreatedBy, adminKey), false)
+    assert.equal(call(withCreatedBy, superKey), false)
+    assert.deepEqual(call(withCreatedBy, adminKey, TRASH), { tenant: { in: ['10'] } })
   })
 })

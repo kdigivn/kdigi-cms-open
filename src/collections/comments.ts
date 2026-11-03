@@ -16,6 +16,7 @@
 import type { CollectionConfig } from 'payload'
 import { tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
 import { canModerateComments } from '../access/role-matrix'
+import { isApiKeySession } from '../lib/api-key-session'
 import { relationId, syncCommentCounts } from '../hooks/sync-comment-count'
 import { revalidateParentPostOnCommentApproval } from '../hooks/revalidate-on-comment-approval'
 import { createCommentEndpoint } from '../endpoints/create-comment'
@@ -51,7 +52,7 @@ export const Comments: CollectionConfig = {
       return tenantScopedRead({ req })
     },
     delete: ({ req }) => {
-      if (!canModerateComments(req.user)) return false
+      if (!canModerateComments(req.user) || isApiKeySession(req.user)) return false
       return tenantScopedRead({ req })
     },
   },

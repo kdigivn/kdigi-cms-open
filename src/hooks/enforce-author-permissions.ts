@@ -12,7 +12,7 @@
  *
  * All other roles pass through unchanged (additive-only, no behavior reduction).
  */
-import type { CollectionBeforeChangeHook } from 'payload'
+import { APIError, type CollectionBeforeChangeHook } from 'payload'
 
 export const AUTHOR_PUBLISH_FORBIDDEN_MESSAGE =
   'Vai trò Author không có quyền đăng bài. Vui lòng liên hệ Editor hoặc Admin để phê duyệt. ' +
@@ -31,7 +31,8 @@ export const enforceAuthorPermissions: CollectionBeforeChangeHook = ({
   const effectiveStatus = data?.status !== undefined ? data.status : previous?.status
   const isTrashing = data?.deletedAt !== undefined && data.deletedAt !== null && !previous?.deletedAt
   if (effectiveStatus === 'published' && !isTrashing) {
-    throw new Error(AUTHOR_PUBLISH_FORBIDDEN_MESSAGE)
+    // 403, not a plain Error: REST and agent callers get a permission failure, not a 500.
+    throw new APIError(AUTHOR_PUBLISH_FORBIDDEN_MESSAGE, 403, undefined, true)
   }
 
   // Auto-set createdBy on create; preserve on update (do not allow author to reassign)

@@ -12,6 +12,7 @@ import type {
   CollectionBeforeChangeHook,
   CollectionConfig,
 } from 'payload'
+import { isApiKeySession } from '../lib/api-key-session'
 import { sanitizeHtmlContent } from '../lib/sanitize-html-content'
 import { normalizeTelephoneE164 } from '../hooks/normalize-telephone-e164'
 import { getEnvPageEndpoint } from '../endpoints/get-env-page'
@@ -95,7 +96,7 @@ export const Sites: CollectionConfig = {
     update: ({ req: { user } }) =>
       user?.role === 'super-admin' ||
       user?.role === 'admin',
-    delete: ({ req: { user } }) => user?.role === 'super-admin',
+    delete: ({ req: { user } }) => user?.role === 'super-admin' && !isApiKeySession(user),
   },
   hooks: {
     beforeChange: [normalizeTelephoneE164 as CollectionBeforeChangeHook],

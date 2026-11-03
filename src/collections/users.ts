@@ -6,6 +6,7 @@ import {
   DEMO_ACCOUNT_LOCKED_MESSAGE,
   isDemoAccountEmail,
 } from '../lib/demo-accounts'
+import { API_KEY_SESSION_ACCOUNT_MESSAGE, changedAccountFields, isApiKeySession } from '../lib/api-key-session'
 
 /**
  * The very first user of a fresh install — registered through the admin's
@@ -34,6 +35,18 @@ const lockDemoAccountSelfChange: CollectionBeforeValidateHook = ({ data, origina
   if (String(req.user.id) !== String(originalDoc.id) || !isDemoAccountEmail(originalDoc.email)) return data
   if (changedLockedFields(data, originalDoc).length > 0) {
     throw new APIError(DEMO_ACCOUNT_LOCKED_MESSAGE, 403, null, true)
+  }
+  return data
+}
+
+/**
+ * API-key sessions cannot create accounts or change any account's credentials, role or sites —
+ * a leaked key must not become a takeover (`src/lib/api-key-session.ts`). Applies to every route.
+ */
+const lockApiKeySessionAccountChange: CollectionBeforeValidateHook = ({ data, originalDoc, operation, req }) => {
+  if (!isApiKeySession(req.user)) return data
+  if (operation === 'create' || changedAccountFields(data, originalDoc).length > 0) {
+    throw new APIError(API_KEY_SESSION_ACCOUNT_MESSAGE, 403, null, true)
   }
   return data
 }
@@ -91,10 +104,10 @@ export const Users: CollectionConfig = {
       // Non-super-admin users can only update themselves (e.g. change password)
       return { id: { equals: user.id } }
     },
-    delete: ({ req: { user } }) => user?.role === 'super-admin',
+    delete: ({ req: { user } }) => user?.role === 'super-admin' && !isApiKeySession(user),
   },
   hooks: {
-    beforeValidate: [lockDemoAccountSelfChange],
+    beforeValidate: [lockDemoAccountSelfChange, lockApiKeySessionAccountChange],
     beforeChange: [promoteFirstUserToSuperAdmin],
     beforeDelete: [blockDemoAccountSelfDelete],
   },

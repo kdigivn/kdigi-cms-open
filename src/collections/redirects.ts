@@ -8,7 +8,7 @@
  * Public read allowed (unauthenticated) so frontend can fetch the list without auth.
  */
 import type { CollectionConfig, Where } from 'payload'
-import { tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
+import { tenantScopedDelete, tenantScopedRead, tenantScopedWrite } from '../access/tenant-scoped'
 
 export const Redirects: CollectionConfig = {
   slug: 'redirects',
@@ -31,7 +31,7 @@ export const Redirects: CollectionConfig = {
     },
     create: tenantScopedWrite,
     update: tenantScopedWrite,
-    delete: tenantScopedWrite,
+    delete: tenantScopedDelete,
   },
   hooks: {
     beforeValidate: [

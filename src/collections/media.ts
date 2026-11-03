@@ -15,7 +15,7 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
 
 import { resolveUploadTenantId, toTenantRelationshipId } from '../lib/resolve-upload-tenant'
-import { hasAnyTenantOrSuperAdmin, tenantScopedWrite } from '../access/tenant-scoped'
+import { hasAnyTenantOrSuperAdmin, tenantScopedDelete, tenantScopedWrite } from '../access/tenant-scoped'
 import { resolveR2BucketForTenant } from '../lib/r2-bucket-resolver'
 import { maybeConvertToWebp, applyWebpDecision } from '../lib/webp-on-upload'
 import { stripDiacritics } from '../lib/vietnamese-text'
@@ -64,7 +64,7 @@ export const Media: MediaConfig = {
     // update rule keeps later reassignment to super-admins.
     create: hasAnyTenantOrSuperAdmin,
     update: tenantScopedWrite,
-    delete: tenantScopedWrite,
+    delete: tenantScopedDelete,
   },
   fields: [
     {

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
+import { APIError } from 'payload'
+
 import { enforceAuthorPermissions } from './enforce-author-permissions'
 
 type Args = Parameters<typeof enforceAuthorPermissions>[0]
@@ -19,8 +21,11 @@ function run(
 }
 
 describe('enforceAuthorPermissions — effective status [RT-6]', () => {
-  it('an author cannot submit status=published', () => {
-    assert.throws(() => run('author', { status: 'published' }, { status: 'draft' }), /Author/)
+  it('an author cannot submit status=published (403, message visible to the caller)', () => {
+    assert.throws(
+      () => run('author', { status: 'published' }, { status: 'draft' }),
+      (err: unknown) => err instanceof APIError && err.status === 403 && /Author/.test(err.message),
+    )
   })
 
   it('an author cannot restore a trashed published document ({ deletedAt: null } only)', () => {

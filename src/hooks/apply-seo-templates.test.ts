@@ -495,6 +495,15 @@ describe('makeApplySeoTemplatesHook — breadcrumb auto-gen', () => {
     assert.deepEqual(seo.breadcrumbs, existing)
   })
 
+  it('keeps the stored trail when a partial update omits seo.breadcrumbs', async () => {
+    const hook = makeApplySeoTemplatesHook('post')
+    const stored = [{ url: '/custom/', text: 'Custom', isHidden: true }]
+    const data = { tenant: 'site-1', status: 'published' }
+    const originalDoc = { slug: 'test', title: 'Test', seo: { breadcrumbs: stored } }
+    const out = (await run(hook, { data, originalDoc, req: makeReq(makeSiteWithDesc(), 'vi') })) as Record<string, unknown>
+    assert.equal((out.seo as Record<string, unknown>).breadcrumbs, undefined)
+  })
+
   it('skips breadcrumb auto-gen for front page docs', async () => {
     const hook = makeApplySeoTemplatesHook('page')
     const data = { tenant: 'site-1', title: 'Trang chủ', slug: '/', isFrontPage: true, seo: {} }

@@ -20,7 +20,7 @@ import {
   convertLexicalToHTML,
   defaultHTMLConverters,
 } from '@payloadcms/richtext-lexical'
-import type { Field, FieldHook } from 'payload'
+import type { Field, FieldHook, PayloadRequest } from 'payload'
 import { markdownToHtml } from '../lib/markdown-to-html'
 import { injectImageDimensions, loadTenantImageSizes, type ImageSize } from '../lib/image-dimensions'
 import { expandShortcodesInMarkdown } from '../lib/shortcodes/expand-shortcodes'
@@ -31,6 +31,11 @@ import { headingHTMLConverter } from './heading-html-converter'
 // only covers paragraph/text/linebreak/tab — heading nodes produce "unknown node"
 // without it.
 const htmlConvertersWithHeadings = [...defaultHTMLConverters, headingHTMLConverter]
+
+/** Render a legacy Lexical body to HTML with the same converters the REST fallback uses. */
+export function legacyLexicalToHtml(value: Parameters<typeof convertLexicalToHTML>[0]['data'], req: PayloadRequest): Promise<string> {
+  return convertLexicalToHTML({ converters: htmlConvertersWithHeadings, data: value, req })
+}
 
 function makeAfterRead(mdFieldName: string): FieldHook {
   return async ({ value, siblingData, req, data }) => {
@@ -58,7 +63,7 @@ function makeAfterRead(mdFieldName: string): FieldHook {
     if (md === '') return null
     if (!value?.root) return value
     try {
-      return await convertLexicalToHTML({ converters: htmlConvertersWithHeadings, data: value, req })
+      return await legacyLexicalToHtml(value, req)
     } catch {
       return value
     }

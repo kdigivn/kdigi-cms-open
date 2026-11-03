@@ -1,5 +1,6 @@
 import type { Access, Where } from 'payload'
 
+import { isApiKeySession } from '../lib/api-key-session'
 import { canManageContent, canPermanentlyDelete, isAuthorRole } from './role-matrix'
 import { tenantScopedWrite } from './tenant-scoped'
 
@@ -9,7 +10,8 @@ import { tenantScopedWrite } from './tenant-scoped'
  * Payload calls `delete` access for BOTH a trash (an update whose `data.deletedAt` is set — the
  * access receives that data) and a permanent delete (no data). So one function decides:
  *   - moving to the trash: anyone who manages content, authors only their own documents;
- *   - permanent delete (incl. emptying the trash): admins only (`canPermanentlyDelete`);
+ *   - permanent delete (incl. emptying the trash): admins only (`canPermanentlyDelete`), and never
+ *     from an API-key session — a leaked key must not be able to wipe content irreversibly;
  *   - always AND-ed with the explicit tenant predicate [RT-13] — the multi-tenant plugin's
  *     filter is advisory, `tenantScopedWrite` is the boundary.
  *
@@ -24,7 +26,7 @@ export function makeContentDeleteAccess({ hasCreatedBy }: { hasCreatedBy: boolea
 
     const deletedAt = (args.data as { deletedAt?: unknown } | undefined)?.deletedAt
     const permanent = deletedAt === undefined || deletedAt === null
-    if (permanent && !canPermanentlyDelete(user)) return false
+    if (permanent && (!canPermanentlyDelete(user) || isApiKeySession(user))) return false
 
     const tenant = tenantScopedWrite(args)
     if (tenant === false) return false
