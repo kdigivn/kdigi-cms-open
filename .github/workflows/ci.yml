@@ -1,0 +1,82 @@
+name: CI
+
+# Typecheck, unit tests and lint are all blocking. No secrets are required.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from package.json `packageManager`.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `next build` skips lint AND typecheck (see next.config.ts), so run both here.
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Lint
+        run: pnpm lint
+
+  # Real-Postgres access-control tests. A fresh database is migrated from the single
+  # initial migration, which is also the CI proof that a clean install works.
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kdigi
+          POSTGRES_PASSWORD: kdigi
+          POSTGRES_DB: kdigi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kdigi -d kdigi"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URI: postgresql://kdigi:kdigi@localhost:5432/kdigi
+      PAYLOAD_SECRET: ci-only-payload-secret-min-32-chars-long
+      R2_OFF: 'true'
+      PAYLOAD_INTEGRATION: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Migrate fresh database
+        run: pnpm migrate
+
+      - name: Integration tests
+        run: pnpm test:integration

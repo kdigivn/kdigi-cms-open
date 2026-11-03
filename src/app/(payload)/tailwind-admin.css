@@ -1,0 +1,86 @@
+/* Payload owns the reset and theme. Tailwind utilities belong only inside .twp. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@layer base {
+  .twp, .twp *, .twp *::before, .twp *::after { box-sizing: border-box; }
+  .twp *, .twp *::before, .twp *::after { border-width: 0; border-style: solid; border-color: var(--border); }
+  .twp button { border: 0 solid; font: inherit; }
+  .twp fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+}
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: var(--style-radius-s);
+  --radius-md: var(--style-radius-m);
+  --radius-lg: var(--style-radius-l);
+  --radius-xl: 14px;
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Full CSS colors, not HSL channel tuples. One source: custom.css foundation. */
+.twp {
+  --background: var(--theme-bg);
+  --foreground: var(--theme-text);
+  --card: var(--theme-elevation-0);
+  --card-foreground: var(--theme-text);
+  --popover: var(--theme-elevation-0);
+  --popover-foreground: var(--theme-text);
+  --primary: var(--theme-brand);
+  --primary-foreground: var(--harbor-on-primary);
+  --secondary: var(--theme-elevation-100);
+  --secondary-foreground: var(--theme-text);
+  --muted: var(--theme-elevation-100);
+  --muted-foreground: var(--theme-muted-text);
+  --accent: var(--theme-brand-subtle);
+  --accent-foreground: var(--theme-brand);
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: var(--theme-border-color);
+  --input: var(--harbor-control-border);
+  --ring: var(--theme-ring);
+  --radius: var(--style-radius-l);
+  --sidebar: var(--theme-nav-bg);
+  --sidebar-foreground: var(--theme-text);
+  --sidebar-primary: var(--theme-brand);
+  --sidebar-primary-foreground: var(--harbor-on-primary);
+  --sidebar-accent: var(--theme-brand-subtle);
+  --sidebar-accent-foreground: var(--theme-brand);
+  --sidebar-border: var(--theme-border-color);
+  --sidebar-ring: var(--theme-ring);
+  min-width: 0;
+  font-size: var(--kdigi-font-size-body);
+  line-height: var(--kdigi-line-body);
+}
+
+[data-theme="dark"] .twp { --destructive: #fda29b; --destructive-foreground: #35130f; }

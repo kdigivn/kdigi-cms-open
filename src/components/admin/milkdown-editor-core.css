@@ -1,0 +1,740 @@
+/**
+ * Scoped wrapper for the Milkdown Crepe editor inside the Payload admin.
+ *
+ * Crepe theme styles target the editor's own `.milkdown` root and `--crepe-*`
+ * custom properties, so they are naturally scoped to the editor subtree. This
+ * file only constrains layout (border/min-height to match the dynamic-import
+ * loading placeholder) and confines the `--crepe-*` token surface to the
+ * wrapper so the fixed `frame` theme cannot bleed into surrounding admin chrome.
+ */
+.milkdown-editor-wrapper {
+  position: relative;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--mlk-surface-base, #fff);
+}
+
+.milkdown-editor-wrapper .milkdown {
+  min-height: 320px;
+}
+
+.milkdown-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--mlk-border-divider, #eaecf0);
+  background: linear-gradient(180deg, var(--mlk-surface-base, #fcfcfd) 0%, var(--mlk-surface-low, #f8fafc) 100%);
+}
+
+.milkdown-editor-toolbar button,
+.milkdown-find-panel button,
+.milkdown-modal__tabs button,
+.milkdown-remote-image-form button,
+.milkdown-focus-shell__toolbar button,
+.milkdown-side-sheet__header button {
+  border: 1px solid var(--mlk-border-default, #d0d5dd);
+  border-radius: 8px;
+  background: var(--mlk-surface-base, #fff);
+  color: var(--mlk-text-body, #1f2329);
+  cursor: pointer;
+  font: inherit;
+}
+
+.milkdown-editor-toolbar button {
+  padding: 7px 12px;
+}
+
+.milkdown-editor-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.milkdown-find-panel {
+  position: absolute;
+  top: 64px;
+  right: 16px;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  width: min(480px, calc(100% - 32px));
+  padding: 12px;
+  border: 1px solid var(--mlk-border-default, #d0d5dd);
+  border-radius: 12px;
+  background: var(--mlk-surface-floating, rgba(255, 255, 255, 0.96));
+  box-shadow: var(--mlk-shadow-panel, 0 18px 48px rgba(15, 23, 42, 0.14));
+  backdrop-filter: blur(12px);
+}
+
+.milkdown-find-panel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.milkdown-find-panel__row:last-child {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.milkdown-find-panel input,
+.milkdown-library input,
+.milkdown-remote-image-form input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--mlk-border-default, #d0d5dd);
+  border-radius: 8px;
+  background: var(--mlk-surface-base, #fff);
+  color: var(--mlk-text-body, #1f2329);
+  font: inherit;
+}
+
+.milkdown-find-panel button,
+.milkdown-remote-image-form button {
+  padding: 9px 12px;
+}
+
+.milkdown-find-panel button.is-active {
+  border-color: var(--mlk-accent-primary, #3370ff);
+  color: var(--mlk-text-accent, #1d4ed8);
+  background: var(--mlk-accent-active-bg, #eef4ff);
+}
+
+.milkdown-side-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+}
+
+.milkdown-side-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--mlk-surface-backdrop, rgba(15, 23, 42, 0.18));
+}
+
+.milkdown-side-sheet__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(420px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  background: var(--mlk-surface-base, #fff);
+  box-shadow: var(--mlk-shadow-sheet, -16px 0 48px rgba(15, 23, 42, 0.16));
+  overflow: hidden;
+}
+
+.milkdown-side-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.milkdown-side-sheet__header h2,
+.milkdown-side-sheet__section h3 {
+  margin: 0;
+}
+
+.milkdown-side-sheet__header p {
+  margin: 6px 0 0;
+  color: var(--mlk-text-subtle, #667085);
+  font-size: 14px;
+}
+
+.milkdown-side-sheet__header button {
+  width: 36px;
+  height: 36px;
+}
+
+.milkdown-side-sheet__section ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.milkdown-side-sheet__section {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.milkdown-side-sheet__section li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--mlk-surface-subtle, #f8fafc);
+}
+
+.milkdown-side-sheet__section kbd {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--mlk-code-bg, #fff);
+  border: 1px solid var(--mlk-code-border, #d0d5dd);
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+
+.milkdown-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+}
+
+.milkdown-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--mlk-surface-backdrop, rgba(15, 23, 42, 0.22));
+}
+
+.milkdown-modal__panel {
+  position: absolute;
+  inset: 24px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--mlk-surface-base, #fff);
+  box-shadow: var(--mlk-shadow-modal, 0 20px 60px rgba(15, 23, 42, 0.18));
+  overflow: hidden;
+}
+
+.milkdown-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.milkdown-modal__header h2 {
+  margin: 0;
+}
+
+.milkdown-modal__header p {
+  margin: 6px 0 0;
+  color: var(--mlk-text-subtle, #667085);
+}
+
+.milkdown-modal__header button {
+  width: 40px;
+  height: 40px;
+}
+
+.milkdown-modal__tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.milkdown-modal__tabs .is-active {
+  border-color: var(--mlk-accent-primary, #3370ff);
+  background: var(--mlk-accent-active-bg, #eef4ff);
+  color: var(--mlk-text-accent, #1d4ed8);
+}
+
+.milkdown-modal__tabs button {
+  padding: 8px 14px;
+}
+
+.milkdown-modal__error {
+  margin: 0;
+  color: var(--mlk-text-error, #d92d20);
+}
+
+.milkdown-upload-card {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 220px;
+  border: 1px dashed var(--mlk-border-dashed, #98a2b3);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--mlk-surface-upload-start, #f8fafc) 0%, var(--mlk-surface-upload-end, #eef4ff) 100%);
+  text-align: center;
+  cursor: pointer;
+}
+
+.milkdown-upload-card input {
+  display: none;
+}
+
+.milkdown-library {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.milkdown-library__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  align-content: start;
+  min-height: 0;
+  overflow: auto;
+}
+
+.milkdown-library__item {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--mlk-border-card, #e4e7ec);
+  border-radius: 12px;
+  background: var(--mlk-surface-base, #fff);
+  text-align: left;
+  cursor: pointer;
+}
+
+.milkdown-library__item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--mlk-surface-hover, #f2f4f7);
+}
+
+.milkdown-library__item strong,
+.milkdown-library__item span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milkdown-library__item span {
+  color: var(--mlk-text-subtle, #667085);
+  font-size: 13px;
+}
+
+.milkdown-library__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.milkdown-library__pagination button {
+  padding: 8px 12px;
+}
+
+.milkdown-library__pagination span {
+  color: var(--mlk-text-subtle, #667085);
+  font-size: 13px;
+}
+
+.milkdown-remote-image-form {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.milkdown-remote-image-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--mlk-text-label, #344054);
+}
+
+.milkdown-focus-shell {
+  display: none;
+}
+
+.milkdown-editor-wrapper.is-focus-mode {
+  position: fixed;
+  inset: 16px;
+  z-index: 240;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-radius: 18px;
+  box-shadow: var(--mlk-shadow-focus, 0 28px 80px rgba(15, 23, 42, 0.22));
+  overflow: hidden;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-editor-toolbar {
+  grid-column: 1 / -1;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-shell {
+  display: contents;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-editor-root {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+}
+
+.milkdown-focus-shell__toolbar,
+.milkdown-focus-shell__toc,
+.milkdown-focus-shell__footer {
+  position: relative;
+  z-index: 1;
+}
+
+.milkdown-focus-shell__toolbar {
+  display: none;
+}
+
+.milkdown-focus-shell__toc {
+  grid-column: 1;
+  grid-row: 2;
+  padding: 18px 14px;
+  border-right: 1px solid var(--mlk-border-divider, #eaecf0);
+  background: var(--mlk-surface-low, #f8fafc);
+  overflow: auto;
+}
+
+.milkdown-focus-shell__toc h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--mlk-text-subtle, #667085);
+}
+
+.milkdown-focus-shell__toc ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.milkdown-focus-shell__toc button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mlk-text-caption, #475467);
+  text-align: left;
+  cursor: pointer;
+}
+
+.milkdown-focus-shell__toc button[data-level='2'] {
+  padding-left: 18px;
+}
+
+.milkdown-focus-shell__toc button[data-level='3'] {
+  padding-left: 28px;
+}
+
+.milkdown-focus-shell__toc button[data-level='4'] {
+  padding-left: 38px;
+}
+
+.milkdown-focus-shell__toc button.is-active {
+  background: var(--mlk-accent-active-bg, #eef4ff);
+  color: var(--mlk-text-accent, #1d4ed8);
+}
+
+.milkdown-focus-shell__toc .is-empty {
+  color: var(--mlk-text-placeholder, #98a2b3);
+}
+
+.milkdown-focus-shell__footer {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--mlk-border-divider, #eaecf0);
+  background: var(--mlk-surface-base, #fff);
+  color: var(--mlk-text-subtle, #667085);
+  font-size: 13px;
+}
+
+.milkdown-find-match {
+  background: var(--mlk-find-match-bg, rgba(255, 214, 102, 0.45));
+}
+
+.milkdown-find-match--active {
+  background: var(--mlk-find-match-active-bg, rgba(239, 68, 68, 0.26));
+}
+
+/*
+ * `.milkdown-selection-toolbar` (Phase 4's custom React floating toolbar —
+ * see `milkdown-selection-toolbar.tsx` and `milkdown-lark-theme.css` for its
+ * layout/color tokens) fades with the SAME wrapper-class contract Crepe's
+ * built-in toolbar used to: always mounted, shown/hidden by toggling
+ * `.is-selection-toolbar-visible` on `.milkdown-editor-wrapper` (driven by
+ * `milkdown-lark-selection-plugin.ts`'s phase machine), never by a mount/
+ * unmount that would lose focus or measured position.
+ */
+.milkdown-selection-toolbar {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.milkdown-editor-wrapper:not(.is-selection-toolbar-visible) .milkdown-selection-toolbar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.98);
+}
+
+/*
+ * Table editing affordances (Phase 6, Lark editor stabilization plan).
+ *
+ * Selectors used here are verified against the installed
+ * `@milkdown/crepe@7.21.2` / `@milkdown/components@7.21.2` table node view
+ * (see `reports/phase-06-table-affordances-report.md` for the CDN-fetched
+ * source excerpts — `node_modules` is sandbox-read-blocked in this
+ * environment, so the exact release's published source was fetched
+ * instead): `.milkdown-table-block`, `.handle`/`.cell-handle`/`.line-handle`,
+ * `[data-role='col-drag-handle'|'row-drag-handle'|'x-line-drag-handle'|
+ * 'y-line-drag-handle']`, `.button-group`, `.add-button`, `[data-show]`,
+ * `.selectedCell`, `.drag-preview`. No sibling-position (child-order)
+ * selector is used anywhere below (enforced by
+ * `milkdown-editor-css-no-positional-selectors.test.ts`).
+ *
+ * `milkdown-lark-theme.css` (owned by a concurrent phase) already sets base
+ * cursor semantics (`grab`/`grabbing` on `.cell-handle`, `pointer` on the
+ * button-group/add-button, `text` on the table/cell surface) and handle
+ * colors — this section only ADDS what that file does not yet cover: ≥32px
+ * hit areas, keyboard focus-visible rings on the real `<button>` elements,
+ * and the reasoning for why the invisible hit-area expansion cannot cover
+ * cell text. See the report for one flagged conflict
+ * (`milkdown-lark-theme.css`'s `.line-handle` base `cursor: crosshair`
+ * vs. this phase's "pointer cursor on add affordances" requirement).
+ */
+
+/*
+ * Hit-area sizing: Crepe ships the column/row drag-handle chip at 28x16 /
+ * 16x28 and the insertion add-buttons at 16x28 / 28x16 — all short of the
+ * ≥32px target on their cross-axis. Rather than resizing the visible chip
+ * (which would change Crepe's tested visual proportions), an invisible
+ * `::before` expands the pointer/hover hit-test region. Pseudo-element hit
+ * areas still dispatch pointer events to the real host element (the
+ * pseudo-element itself is never `event.target`), so the existing
+ * onPointerdown/onClick handlers keep working.
+ *
+ * Growth is intentionally asymmetric: the cross-axis (the direction that
+ * would grow INTO the table's cell content) is capped at 8px — within the
+ * table's own `10px 12px` cell padding (`milkdown-lark-theme.css`), so the
+ * expanded hit area can only ever reach into the padding gutter around a
+ * cell, never over rendered text. The remaining growth needed to clear
+ * 32px total is placed on the outward side (into the table's own margin/
+ * gutter, away from any cell content). Exact on-screen overlap still
+ * depends on Crepe's JS-computed handle position, which is only measurable
+ * in a browser — deferred per the no-browser-verification directive for
+ * this phase; flagged in the report for a follow-up visual QA pass.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle[data-role='col-drag-handle'],
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle[data-role='row-drag-handle'] {
+  position: absolute;
+}
+
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .cell-handle[data-role='col-drag-handle']::before,
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .cell-handle[data-role='row-drag-handle']::before,
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .line-handle[data-role='x-line-drag-handle']
+  .add-button::before,
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .line-handle[data-role='y-line-drag-handle']
+  .add-button::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+}
+
+/* Column handle (28x16, straddles the table's top border): along-axis
+   (width) grows a few px each side (>=32 either way). Cross-axis (height)
+   grows 16px outward (up, into the empty margin above the table — always
+   safe) and 8px inward (down, into the header row — capped inside its
+   10px padding-top so it cannot reach header text). Final box: 34x40. */
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .cell-handle[data-role='col-drag-handle']::before {
+  left: -3px;
+  right: -3px;
+  top: -16px;
+  bottom: -8px;
+}
+
+/* Row handle (16x28, straddles the table's left border): mirrored — width
+   (cross-axis) grows 16px outward (left, into the empty margin left of the
+   table — always safe) and 8px inward (right, into the first column,
+   capped inside its 12px padding-left). Height (along-axis) grows a few
+   px each side. Final box: 40x34. */
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .cell-handle[data-role='row-drag-handle']::before {
+  top: -3px;
+  bottom: -3px;
+  left: -16px;
+  right: -8px;
+}
+
+/* Add-row button (16x28, sits on a horizontal insertion line): width
+   (cross-axis relative to the row it inserts into) is capped at the cell
+   padding; height (along-axis) grows freely past 32px. */
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .line-handle[data-role='x-line-drag-handle']
+  .add-button::before {
+  top: -3px;
+  bottom: -3px;
+  left: -8px;
+  right: -8px;
+}
+
+/* Add-column button (28x16, sits on a vertical insertion line): height
+   (cross-axis relative to the column it inserts into) is capped at the
+   cell padding; width (along-axis) grows freely past 32px. */
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .line-handle[data-role='y-line-drag-handle']
+  .add-button::before {
+  left: -3px;
+  right: -3px;
+  top: -8px;
+  bottom: -8px;
+}
+
+/* button-group actions (align/delete) already float 52px above the handle
+   in their own isolated panel (Crepe's own positioning), clear of any cell
+   content — safe to reach 32px symmetrically. */
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group button {
+  position: relative;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/*
+ * Keyboard focus-visible affordance. Crepe renders both the align/delete
+ * buttons (inside `.button-group`) and the row/column `.add-button` as real
+ * `<button type="button">` elements (natively focusable — confirmed against
+ * the installed `@milkdown/components` table-block source, see report), so
+ * Tab reaches them even though the app's own keymap adds no explicit
+ * binding. Their keyboard-activation support differs, though (documented
+ * Crepe limitation, see report): `.add-button` wires a real `onClick`, so
+ * Enter/Space already inserts a row/column once focused; the align/delete
+ * buttons inside `.button-group` wire only `onPointerdown`, so Enter/Space
+ * on those does NOT yet activate them — this rule still styles both
+ * tab-stops so they are visible, but only the add buttons are fully
+ * keyboard-operable today. `.cell-handle` itself is a plain non-interactive
+ * element with no tabindex and is intentionally NOT given a focus ring
+ * here, since nothing makes it a real keyboard stop.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group button:focus-visible,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle .add-button:focus-visible {
+  outline: 2px solid var(--milkdown-primary, var(--mlk-accent-primary, #3370ff));
+  outline-offset: 1px;
+}
+
+/*
+ * Active-cell affordance (user request 2026-07-16): the td/th containing the
+ * caret is marked with `is-active-cell` by a node DECORATION
+ * (`milkdown-active-cell-plugin.ts`) — the class never persists (locked by
+ * `canonical-gfm-fixture.test.ts`). Inset box-shadow + tint ONLY: border
+ * widths never change, so the selection-geometry invariant (zero layout
+ * shift) holds.
+ */
+.milkdown-editor-wrapper .milkdown .ProseMirror td.is-active-cell,
+.milkdown-editor-wrapper .milkdown .ProseMirror th.is-active-cell {
+  box-shadow: inset 0 0 0 1.5px var(--milkdown-primary);
+  background-color: var(--mlk-table-cell-active-bg, rgba(51, 112, 255, 0.05));
+}
+
+/*
+ * No resize cursor anywhere in this stylesheet: column-width persistence
+ * has no GFM representation and is intentionally excluded (plan.md product
+ * boundary). Guarded by an automated test — see
+ * `milkdown-lark-table-commands.test.ts`'s "no fake column/row resize
+ * cursor" check, which scans every `milkdown-*.css` file for
+ * `col-resize`/`row-resize`/`ew-resize`/`ns-resize` cursor values.
+ */
+
+/*
+ * WordPress gallery atoms keep their source HTML in ProseMirror attrs, while
+ * this editor-only surface supplies the original two-column preview. The
+ * frontend owns the same class contract; no inline styles enter the source.
+ */
+.milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 > .gallery-item {
+  min-width: 0;
+  margin: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 > .gallery-item > .gallery-icon {
+  margin: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 figcaption {
+  margin-top: 6px;
+  color: var(--milkdown-muted-color);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .milkdown-editor-wrapper .milkdown .ProseMirror .gallery.gallery-columns-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .milkdown-editor-wrapper.is-focus-mode {
+    inset: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    border-radius: 0;
+  }
+
+  .milkdown-focus-shell__toc {
+    grid-column: 1;
+    grid-row: 2;
+    border-right: 0;
+    border-bottom: 1px solid var(--mlk-border-divider, #eaecf0);
+    max-height: 180px;
+  }
+
+  .milkdown-editor-wrapper.is-focus-mode .milkdown-editor-root {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .milkdown-modal__panel {
+    inset: 12px;
+  }
+}

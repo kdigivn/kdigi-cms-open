@@ -1,0 +1,73 @@
+# --- Secrets & local configuration -------------------------------------------
+# Env files: only the committed template is tracked.
+.env*
+!.env.example
+*.pem
+*.key
+certificates/
+
+# --- Local data (never commit) -------------------------------------------------
+# Uploaded media (local-disk storage; default MEDIA_DIR=./media)
+/media/
+/public/media
+/src/media
+# Database backups / dumps
+backups*/
+backup-*.sql
+*.sql.gz
+*.dump
+*.dump.gpg
+# WordPress migration working data (raw mirrors, staged content)
+wp-archive/
+# Generated runtime data (e.g. docker volume mounts)
+/data/
+
+# --- Dependencies ----------------------------------------------------------------
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+package-lock.json
+yarn.lock
+
+# --- Build output ------------------------------------------------------------------
+/.next/
+/out/
+/build
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Tests ---------------------------------------------------------------------------
+/coverage
+.nyc_output
+test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# --- Logs & misc -----------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs.txt
+.DS_Store
+.vercel
+repomix-output.xml
+
+# --- Editor / AI tooling state ---------------------------------------------------------
+/.claude/
+!/.claude/rules/
+.agent/
+.agents/
+.codex/
+.gemini/
+.mavis/
+.opencode/
+.serena/cache

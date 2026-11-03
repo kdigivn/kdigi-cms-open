@@ -1,0 +1,80 @@
+# KDIGI CMS — production stack for Coolify (also works with plain `docker compose`).
+#
+# Coolify: New Resource -> Docker Compose -> point at this repo, set "Docker Compose Location"
+# to /docker-compose.coolify.yml. Coolify generates the domain, TLS certificate and the
+# database password (the SERVICE_* magic variables below). Full walkthrough: docs/deploy.md.
+#
+# Required settings (Coolify "Environment Variables"):
+#   PAYLOAD_SECRET   >= 32 random chars (openssl rand -hex 32). Never reuse across installs.
+# Everything else is optional — see .env.example for the full list.
+#
+# On every start the container applies database migrations (`payload migrate`) before
+# `next start`. Postgres data (postgres_data) and uploaded media (media_data) live in named
+# volumes, so redeploys never touch them.
+#
+# Using a managed/external Postgres instead? Set DATABASE_URI and ignore (or delete) the
+# `db` service together with the app's depends_on entry.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Coolify: assigns a domain to the app and proxies it to port 3000.
+      - SERVICE_URL_APP_3000
+      - NODE_ENV=production
+      - DATABASE_URI=${DATABASE_URI:-postgres://kdigi:${SERVICE_PASSWORD_POSTGRES}@db:5432/kdigi}
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET:?set PAYLOAD_SECRET (>= 32 random chars)}
+      # Public URL of the CMS (admin origin + media URL prefix). Defaults to the Coolify domain;
+      # set it explicitly when you attach a custom domain.
+      - PAYLOAD_PUBLIC_SERVER_URL=${PAYLOAD_PUBLIC_SERVER_URL:-${SERVICE_URL_APP}}
+      - MEDIA_DIR=/app/media
+      # Media goes to local disk (volume below) unless a site has Cloudflare R2 config
+      # (set per site in the admin). R2_OFF=true forces local disk for all sites.
+      - R2_OFF=${R2_OFF:-}
+      # Job runner for revalidate-frontend jobs. Enable on exactly ONE instance.
+      - ENABLE_JOBS_AUTORUN=${ENABLE_JOBS_AUTORUN:-}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-}
+      # Optional integrations (empty = disabled).
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-}
+      - RECAPTCHA_SECRET=${RECAPTCHA_SECRET:-}
+      - MODERATION_WEBHOOK_URL=${MODERATION_WEBHOOK_URL:-}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-kdigi-cms}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      # One-off switches handled by the entrypoint.
+      - SEED_DEMO=${SEED_DEMO:-}
+      - SKIP_MIGRATIONS=${SKIP_MIGRATIONS:-}
+    volumes:
+      - media_data:/app/media
+      - app_data:/app/data
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kdigi
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_DB: kdigi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kdigi -d kdigi']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media_data:
+  app_data:

@@ -1,0 +1,1165 @@
+@import './milkdown-theme-tokens.css';
+
+.milkdown-editor-wrapper .milkdown {
+  --milkdown-column-width: 820px;
+  --milkdown-column-padding-inline: 40px;
+  --milkdown-column-padding-top: 32px;
+  --milkdown-column-padding-bottom: 56px;
+  --milkdown-body-color: var(--mlk-text-body, #1f2329);
+  --milkdown-muted-color: var(--mlk-text-muted, #646a73);
+  --milkdown-outline-color: var(--mlk-border-subtle, #dee0e3);
+  --milkdown-surface-low: var(--mlk-surface-low, #f8fafc);
+  --milkdown-surface-soft: var(--mlk-surface-soft, #fbfdff);
+  --milkdown-table-header: var(--mlk-table-header-bg, #f6f8fb);
+  --milkdown-table-hover: var(--mlk-table-row-hover, #f8fbff);
+  --milkdown-primary: var(--mlk-accent-primary, #3370ff);
+  --milkdown-primary-soft: var(--mlk-accent-soft, rgba(51, 112, 255, 0.1));
+  --crepe-font-title: var(--font-body);
+  --crepe-font-default: var(--font-body);
+  --crepe-font-code:
+    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Courier New', monospace;
+  --crepe-color-background: var(--mlk-surface-base, #fff);
+  --crepe-color-on-background: var(--milkdown-body-color);
+  --crepe-color-surface: var(--mlk-surface-base, #fff);
+  --crepe-color-surface-low: var(--milkdown-surface-low);
+  --crepe-color-outline: var(--milkdown-outline-color);
+  --crepe-color-primary: var(--milkdown-primary);
+  --crepe-color-secondary: var(--mlk-accent-active-bg, #e5efff);
+  --crepe-color-inverse: var(--mlk-surface-inverse, #fff);
+  min-height: 320px;
+  color: var(--milkdown-body-color);
+  background: var(--mlk-surface-base);
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--milkdown-column-width);
+  min-height: 320px;
+  margin: 0 auto;
+  padding: var(--milkdown-column-padding-top) var(--milkdown-column-padding-inline)
+    var(--milkdown-column-padding-bottom);
+  color: var(--milkdown-body-color);
+  font-size: 16px;
+  line-height: 26px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror > *:first-child {
+  margin-top: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror > *:last-child {
+  margin-bottom: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6) {
+  font-family:
+    'Inter',
+    'Geist',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif !important;
+  font-weight: 500 !important;
+  color: var(--milkdown-body-color);
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(h1, h2, h3, h4, h5, h6, p, li, blockquote) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h1 {
+  margin: 26px 0 10px;
+  font-size: 26px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h2 {
+  margin: 22px 0 8px;
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h3 {
+  margin: 20px 0 8px;
+  font-size: 20px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h4 {
+  margin: 18px 0 8px;
+  font-size: 18px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h5 {
+  margin: 17px 0 8px;
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror h6 {
+  margin: 16px 0 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Lark row typography (user-supplied reference CSS — Lark Docs
+ * `.text-block .text-editor`): line-height EQUALS the row's min-height so
+ * the native `::selection` highlight (which paints the full line box)
+ * exactly fills the row instead of visually "growing" past the glyphs on
+ * selection. Scoped to body text rows only (paragraphs, list/task items) —
+ * quote/code/table rows keep their existing line-height on purpose (see the
+ * next rule) and menu/toolbar/dropdown row typography is a separate,
+ * unrelated selector further down this file — never touch it here.
+ */
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(p, li) {
+  font-size: 16px;
+  line-height: 26px;
+  min-height: 26px;
+  outline: 1px solid transparent;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(blockquote, td, th) {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror p,
+.milkdown-editor-wrapper .milkdown .ProseMirror ul,
+.milkdown-editor-wrapper .milkdown .ProseMirror ol,
+.milkdown-editor-wrapper .milkdown .ProseMirror blockquote,
+.milkdown-editor-wrapper .milkdown .ProseMirror pre,
+.milkdown-editor-wrapper .milkdown .ProseMirror table,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block {
+  margin: 8px 0;
+}
+
+/**
+ * Lark list gutter: Crepe renders each list item through its own
+ * `milkdown-list-item-block` node view (flex row: 24px `.label-wrapper`
+ * gutter + gap + `.children`), so the marker gutter is supplied by the
+ * component itself — any additional ul/ol padding stacks ON TOP of it.
+ * The previous `padding-left: 1.5em` (~24px) pushed total text offset to
+ * ~58px+; Lark keeps it at ~24-28px from the content edge. Nesting still
+ * indents naturally because every nested level renders its own 24px+gap
+ * label gutter inside `.children`.
+ */
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(ul, ol) {
+  padding-left: 2px;
+}
+
+/* Tighten Crepe's list-item row to the Lark 16/26 rhythm: 10px gap → 6px
+   (total text offset ≈ 24 + 6 + 2 = 32px), 32px label row → 26px so list
+   rows match body line-height instead of reading double-spaced. */
+.milkdown-editor-wrapper .milkdown .milkdown-list-item-block li {
+  gap: 6px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-list-item-block li .label-wrapper {
+  height: 26px;
+  color: var(--milkdown-body-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-list-item-block li .label-wrapper svg {
+  fill: var(--milkdown-body-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-list-item-block li .label-wrapper .label {
+  height: 26px;
+  padding: 0;
+  line-height: 26px;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(ul, ol) :is(ul, ol) {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror li + li {
+  margin-top: 2px;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ul {
+  list-style: disc;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ul ul {
+  list-style: circle;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ul ul ul {
+  list-style: square;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ol {
+  list-style: decimal;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ol ol {
+  list-style: lower-alpha;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror ol ol ol {
+  list-style: lower-roman;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(ul, ol) ::marker {
+  color: var(--milkdown-primary);
+  font-weight: 500;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror blockquote {
+  margin-inline: 0;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--milkdown-outline-color);
+  color: var(--milkdown-muted-color);
+  background: var(--mlk-quote-bg, linear-gradient(90deg, rgba(100, 106, 115, 0.05), transparent 55%));
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror blockquote > :first-child {
+  margin-top: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror table,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--milkdown-outline-color);
+  border-radius: 12px;
+  background: var(--mlk-surface-base, #fff);
+  overflow: hidden;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block {
+  margin: 18px 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror th,
+.milkdown-editor-wrapper .milkdown .ProseMirror td,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block th,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block td {
+  border-right: 1px solid var(--milkdown-outline-color);
+  border-bottom: 1px solid var(--milkdown-outline-color);
+  padding: 10px 12px;
+  vertical-align: top;
+  background: var(--mlk-surface-base, #fff);
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror th,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block th {
+  background: var(--milkdown-table-header);
+  font-weight: 500;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror tbody tr:hover td,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block tbody tr:hover td {
+  background: var(--milkdown-table-hover);
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror :is(th, td):last-child {
+  border-right: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror tr:last-child :is(td, th) {
+  border-bottom: 0;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .selectedCell::after {
+  background: var(--milkdown-primary-soft);
+  opacity: 1;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .drag-preview {
+  background: var(--mlk-table-drag-preview-bg, rgba(255, 255, 255, 0.72));
+  outline: 1px solid var(--mlk-accent-handle, rgba(51, 112, 255, 0.45));
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle .add-button {
+  color: var(--mlk-text-caption, #475467);
+  border: 1px solid var(--mlk-table-handle-border, rgba(208, 213, 221, 0.9));
+  background: var(--mlk-table-handle-bg, rgba(255, 255, 255, 0.98));
+  box-shadow: var(--mlk-shadow-handle, 0 12px 32px rgba(15, 23, 42, 0.12));
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle:hover,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle .add-button:hover {
+  color: var(--milkdown-primary);
+  background: var(--mlk-table-handle-hover-bg, #eff4ff);
+  border-color: var(--mlk-table-handle-hover-border, rgba(51, 112, 255, 0.24));
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group {
+  border: 1px solid var(--mlk-table-handle-border, rgba(208, 213, 221, 0.92));
+  background: var(--mlk-table-handle-bg, rgba(255, 255, 255, 0.98));
+  box-shadow: var(--mlk-shadow-handle, 0 16px 40px rgba(15, 23, 42, 0.14));
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group button {
+  color: var(--mlk-text-caption, #475467);
+  border-radius: 6px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group button:hover {
+  color: var(--milkdown-primary);
+  background: var(--mlk-table-handle-hover-bg, #eff4ff);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle {
+  background: var(--mlk-accent-handle, rgba(51, 112, 255, 0.45));
+}
+
+.milkdown-editor-wrapper
+  .milkdown
+  .milkdown-table-block
+  .line-handle[data-display-type='indicator'] {
+  background: var(--milkdown-primary);
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror hr {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid var(--milkdown-outline-color);
+}
+
+/*
+ * Release invariant: the slash menu must never join the selected block's
+ * layout flow (it is a Crepe-rendered sibling of .ProseMirror inside
+ * .milkdown, not a descendant of the editable tree). Crepe's own floating-ui
+ * positioning already renders it off-flow; this rule pins that contract in
+ * our stylesheet so an upstream Crepe change can't silently regress it into
+ * a static/flow element that would reflow selected content. Only takes
+ * effect if no inline `position` is set by Crepe's positioning logic —
+ * inline styles still win, so this cannot fight correct behavior.
+ *
+ * The floating SELECTION toolbar and its "Turn into" dropdown are no longer
+ * Crepe elements — see `.milkdown-selection-toolbar` /
+ * `.milkdown-selection-block-menu` below, both `position: fixed` and
+ * positioned entirely in JS (`milkdown-selection-toolbar.tsx`,
+ * `milkdown-editor-core.tsx`), which makes the same off-flow guarantee
+ * structurally true rather than relying on Crepe's internal positioning.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu {
+  position: absolute;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  background: var(--mlk-surface-raised, #fff);
+  box-shadow: var(--mlk-shadow-menu, 0 8px 24px rgba(31, 35, 41, 0.12), 0 1px 3px rgba(31, 35, 41, 0.08));
+}
+
+/*
+ * Custom Lark-style floating selection toolbar (Phase 4 — replaces Crepe's
+ * built-in toolbar feature entirely; see `milkdown-editor-core.tsx`'s Phase 4
+ * comment). `position: fixed`, viewport-anchored coordinates computed in
+ * `milkdown-selection-toolbar.tsx` — never participates in document layout.
+ * Every control is addressed by `data-command-group`
+ * (`"block-type"`/`"mark"`/`"insert"`), never by sibling order/position —
+ * no CSS selector in this stylesheet infers command identity from where a
+ * button sits among its siblings (the defect this phase removes; see
+ * `reports/phase-01-baseline-inventory.md` §3).
+ */
+.milkdown-selection-toolbar {
+  position: fixed;
+  z-index: var(--milkdown-layer-floating-toolbar, 500);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  border-radius: 10px;
+  background: var(--mlk-surface-raised, #fff);
+  box-shadow: var(--mlk-shadow-menu, 0 8px 24px rgba(31, 35, 41, 0.12), 0 1px 3px rgba(31, 35, 41, 0.08));
+}
+
+.milkdown-selection-toolbar button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mlk-text-secondary, #2f333b);
+  cursor: pointer;
+}
+
+.milkdown-selection-toolbar button:hover {
+  background: var(--mlk-surface-hover, #f2f3f5);
+}
+
+.milkdown-selection-toolbar button:focus-visible {
+  outline: 2px solid var(--mlk-accent-primary, #3370ff);
+  outline-offset: 1px;
+}
+
+.milkdown-selection-toolbar button.is-active {
+  color: var(--mlk-text-accent, #245bdb);
+  background: var(--mlk-accent-active-bg, #e8f0ff);
+}
+
+.milkdown-selection-toolbar__trigger {
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.milkdown-selection-toolbar__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+}
+
+.milkdown-selection-toolbar__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.milkdown-selection-toolbar__chevron {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-right: 1.4px solid currentColor;
+  border-bottom: 1.4px solid currentColor;
+  transform: translateY(-1px) rotate(45deg);
+}
+
+.milkdown-selection-toolbar__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--mlk-border-divider, #d8dce3);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu {
+  width: min(280px, calc(100vw - 24px));
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .tab-group {
+  display: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-groups {
+  max-height: min(520px, 65vh);
+  padding: 0;
+  overscroll-behavior: contain;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group h6 {
+  margin: 0;
+  padding: 10px 10px 6px;
+  color: var(--mlk-text-muted, #646a73);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  text-transform: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  gap: 12px;
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: var(--mlk-text-secondary, #2f333b);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li.hover {
+  background: var(--mlk-surface-hover, #f2f3f5);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li.active {
+  background: var(--mlk-surface-active, #e8edf5);
+}
+
+/*
+ * Defensive keyboard-focus state: Crepe's own keyboard navigation toggles
+ * `.active` on the currently-highlighted item (verified via the class
+ * names above), which is not a real DOM `:focus`. This rule is a no-op
+ * fallback for that path and only takes effect if a future Crepe version
+ * (or the custom replacement referenced in the phase-05 report) renders
+ * items as natively focusable elements.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li:focus-visible {
+  outline: 2px solid var(--mlk-accent-primary, #3370ff);
+  outline-offset: -2px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li svg {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: var(--mlk-accent-primary, #336df4);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-slash-menu .menu-group li span {
+  overflow: hidden;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milkdown-selection-block-menu {
+  position: fixed;
+  z-index: var(--milkdown-layer-dropdown-menu, 1200);
+  box-sizing: border-box;
+  width: 280px;
+  max-height: min(516px, calc(100vh - 16px));
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  border-radius: 10px;
+  background: var(--mlk-surface-raised, #fff);
+  box-shadow: var(--mlk-shadow-dropdown, 0 12px 32px rgba(31, 35, 41, 0.14), 0 1px 3px rgba(31, 35, 41, 0.08));
+}
+
+.milkdown-selection-block-menu__title {
+  padding: 8px 10px 6px;
+  color: var(--mlk-text-muted, #646a73);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.milkdown-selection-block-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--mlk-text-secondary, #2f333b);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  line-height: 22px;
+  text-align: left;
+}
+
+.milkdown-selection-block-menu button:hover,
+.milkdown-selection-block-menu button:focus-visible {
+  background: var(--mlk-surface-hover, #f2f3f5);
+  outline: none;
+}
+
+.milkdown-selection-block-menu button.is-active {
+  color: var(--mlk-text-accent, #245bdb);
+  background: var(--mlk-accent-active-bg, #edf3ff);
+}
+
+.milkdown-selection-block-menu__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: currentColor;
+}
+
+.milkdown-selection-block-menu__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.milkdown-selection-block-menu__check {
+  margin-left: auto;
+  color: var(--mlk-accent-primary, #3370ff);
+  font-size: 18px;
+}
+
+/*
+ * ============================================================================
+ * Link editor (Crepe's built-in link-tooltip component) — Phase 7b restyle.
+ * ============================================================================
+ *
+ * Screenshot-verified defect: a bare, browser-default-styled "Paste link…"
+ * input with a visible double border floating over the text.
+ *
+ * Decision (documented per the task's own preference to configure/restyle
+ * the existing seam before building anything new): this is a CSS-only fix,
+ * not a new React popup. Verified against Milkdown v7.21 upstream source
+ * (`@milkdown/kit/component/link-tooltip`,
+ * `packages/components/src/link-tooltip/{edit,preview}/*-view.ts`) that
+ * every BEHAVIORAL requirement already exists there:
+ *   - Anchored to the link/selection range (`posToDOMRect`) via floating-ui
+ *     (`flip()`/`shift()` middleware) — already viewport-clamped.
+ *   - `position: absolute`, appended as a sibling of the editable content —
+ *     zero document-layout participation.
+ *   - Enter confirms the edit (`EditLink`'s `onKeydown`).
+ *   - Escape AND an outside pointerdown both cancel/close, and closing always
+ *     returns focus to the ProseMirror view
+ *     (`LinkEditTooltip`'s `#provider.onHide` → `view.dom.focus()`).
+ *   - Preview mode already offers open-in-new-tab (a real
+ *     `<a target="_blank">` around the link text), copy (click the link
+ *     icon → `navigator.clipboard.writeText`), edit, and remove.
+ * Building a bespoke React popup instead would duplicate ProseMirror
+ * mark-position tracking and floating-ui viewport math this component
+ * already owns — rejected as unnecessary per YAGNI/DRY.
+ *
+ * What actually needed fixing, and why:
+ *   - The "double border" is the native `<input>` border rendering INSIDE
+ *     the panel's own box-shadow — Crepe's default CSS never resets it
+ *     (`.input-area` only sets `outline`/`background`/`width`/`font-size`).
+ *   - Every icon (copy/edit/remove/confirm) is colored via
+ *     `--crepe-color-outline`, which this theme defines as a near-white
+ *     border token (`--milkdown-outline-color: #dee0e3`) — fine for a 1px
+ *     border, unreadable as an icon fill. The confirm checkmark additionally
+ *     ships with a hardcoded `fill="#817567"` on its `<path>` (an off-brand
+ *     brown) — SVG presentation attributes carry the LOWEST cascade
+ *     specificity (lower than any selector), so a plain descendant selector
+ *     on the `<path>` overrides it without `!important`.
+ *   - No panel border (only `box-shadow`) and an unscoped `z-index: 10` —
+ *     brought in line with this file's other floating surfaces (explicit
+ *     border + the shared dropdown-menu layer token).
+ */
+/**
+ * Block-handle icons ("+" insert-below and ⠿ drag) ship from Crepe with
+ * `fill: var(--crepe-color-outline)` — the same near-white border token
+ * problem as the link-tooltip icons documented above (#dee0e3 is fine for a
+ * 1px border, invisible as a 24px icon fill on the white pill button).
+ * Recolor to the muted text token so both handle buttons read clearly.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle .operation-item svg {
+  fill: var(--milkdown-muted-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle .operation-item:hover svg {
+  fill: var(--milkdown-body-color);
+}
+
+/**
+ * The owned `⋮⋮` dropdown (phase 5). Crepe shipped no equivalent — its handle only had
+ * the `+` button — so nothing in the vendored theme covers this class and it was
+ * rendering as an unstyled list until this rule was added (caught by inspection, not by
+ * the matrix: the row asserts the menu opens and a menuitem runs, which an unstyled list
+ * satisfies).
+ *
+ * Anchoring: the upstream `BlockProvider` positions its `.milkdown-block-handle` box
+ * absolutely with inline `left/top`, so that box is the containing block here and the
+ * menu hangs off the handle's own left edge (i.e. the block's left edge) without any JS
+ * measurement. Styling matches `.milkdown-selection-block-menu` (same width, layer token
+ * and shadow) so the two dropdowns read as one component family.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: var(--milkdown-layer-dropdown-menu, 1200);
+  box-sizing: border-box;
+  width: 240px;
+  max-height: min(320px, 60vh);
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  border-radius: 10px;
+  background: var(--mlk-surface-raised, #fff);
+  box-shadow: var(--mlk-shadow-menu, 0 8px 24px rgba(31, 35, 41, 0.12), 0 1px 3px rgba(31, 35, 41, 0.08));
+  /* Keep wheel/touch scrolling inside the menu instead of chaining to the page
+     (same guard as the slash menu's `.menu-groups`). */
+  overscroll-behavior: contain;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu h6 {
+  margin: 0;
+  padding: 6px 10px 6px;
+  color: var(--mlk-text-muted, #646a73);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--milkdown-body-color);
+  cursor: pointer;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu li:hover,
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu li:focus-visible {
+  background: var(--mlk-surface-hover, #f2f3f5);
+  outline: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu .item-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: var(--milkdown-muted-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-block-handle-menu .item-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit {
+  z-index: var(--milkdown-layer-dropdown-menu, 1200);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview > .link-preview,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit > .link-edit {
+  height: 36px;
+  padding: 4px 10px;
+  gap: 6px;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  border-radius: 10px;
+  background: var(--mlk-surface-raised, #fff);
+  box-shadow: var(--mlk-shadow-menu, 0 8px 24px rgba(31, 35, 41, 0.12), 0 1px 3px rgba(31, 35, 41, 0.08));
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit > .link-edit {
+  padding-left: 12px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .input-area {
+  width: 260px;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--milkdown-body-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .input-area::placeholder {
+  color: var(--milkdown-muted-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview .link-display {
+  color: var(--milkdown-body-color);
+  font-size: 14px;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview .milkdown-icon svg,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon svg {
+  width: 16px;
+  height: 16px;
+  color: var(--milkdown-muted-color);
+  fill: var(--milkdown-muted-color);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview .milkdown-icon svg path,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon svg path {
+  fill: currentColor;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview .milkdown-icon,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon {
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-preview .milkdown-icon:hover,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon:hover {
+  background: var(--mlk-surface-hover, #f2f3f5);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon.confirm svg,
+.milkdown-editor-wrapper .milkdown .milkdown-link-edit .milkdown-icon.confirm svg path {
+  color: var(--milkdown-primary);
+  fill: var(--milkdown-primary);
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .table-wrapper,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block :is(table, th, td) {
+  cursor: text;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .handle[data-show='false'] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .handle[data-show='true'] {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab !important;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle:active {
+  cursor: grabbing !important;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle svg {
+  color: currentColor;
+  fill: currentColor;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .cell-handle .button-group button,
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle .add-button {
+  cursor: pointer !important;
+}
+
+.milkdown-editor-wrapper .milkdown .milkdown-table-block .line-handle {
+  cursor: crosshair;
+}
+
+.milkdown-editor-wrapper .milkdown .ProseMirror-selectednode {
+  outline: 2px solid var(--mlk-accent-outline, rgba(51, 112, 255, 0.35));
+  outline-offset: 3px;
+}
+
+.milkdown-editor-wrapper
+  .milkdown
+  .ProseMirror
+  :is(h1, h2, h3, h4, h5, h6, p, blockquote, li).ProseMirror-selectednode {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown {
+  height: 100%;
+  overflow: auto;
+  background: linear-gradient(180deg, var(--mlk-surface-base, rgba(255, 255, 255, 0.98)) 0%, var(--mlk-surface-low, rgba(248, 250, 252, 0.96)) 100%);
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown .ProseMirror {
+  min-height: 100%;
+  padding-top: 40px;
+  padding-bottom: 96px;
+  padding-inline: clamp(32px, 5vw, 64px);
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-shell__toc {
+  background: linear-gradient(180deg, var(--mlk-surface-low, rgba(248, 250, 252, 0.98)) 0%, var(--mlk-surface-base, rgba(255, 255, 255, 0.96)) 100%);
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-shell__toc button {
+  position: relative;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-shell__toc button.is-active {
+  background: var(--mlk-accent-active-bg, #eef4ff);
+  color: var(--mlk-text-accent, #1d4ed8);
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-shell__toc button.is-active::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--milkdown-primary);
+}
+
+@media (max-width: 900px) {
+  .milkdown-editor-wrapper .milkdown .ProseMirror {
+    padding-inline: 24px;
+  }
+
+  .milkdown-editor-wrapper.is-focus-mode .milkdown .ProseMirror {
+    padding-inline: 24px;
+  }
+}
+
+/* ─── Outline rail (phase 7, SP2-4) ───────────────────────────────────────────
+ * Absolutely positioned inside `.milkdown-editor-wrapper` (position: relative) and never in
+ * flow, so the canvas geometry the geometry spec measures is untouched. The host spans the
+ * wrapper's height and the list is sticky inside it, so the rail follows a long document.
+ * Collapsed: level-scaled ticks only. Hover/focus-within: the same list becomes a jump menu.
+ */
+.milkdown-editor-wrapper .milkdown-outline-rail {
+  position: absolute;
+  /* Fallback only: the component sets `top` to where `.ProseMirror` starts (below Crepe's
+     wrapping formatting bar). z-index 11 clears that bar (sticky, z-index 10) once the page
+     scrolls and the sticky list slides alongside it. */
+  top: 56px;
+  bottom: 16px;
+  left: 4px;
+  z-index: 11;
+  width: 16px;
+  pointer-events: none;
+}
+
+.milkdown-outline-rail ul {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 16px;
+  max-height: calc(100vh - 160px);
+  margin: 0;
+  padding: 6px 2px;
+  overflow: hidden;
+  list-style: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  pointer-events: auto;
+}
+
+.milkdown-outline-rail button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--mlk-text-muted, #646a73);
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.milkdown-outline-rail__tick {
+  display: block;
+  flex: none;
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--mlk-border-default, #d0d5dd);
+}
+
+.milkdown-outline-rail li[data-level='2'] .milkdown-outline-rail__tick {
+  width: 9px;
+}
+
+.milkdown-outline-rail li[data-level='3'] .milkdown-outline-rail__tick {
+  width: 6px;
+}
+
+.milkdown-outline-rail li[data-level='4'] .milkdown-outline-rail__tick {
+  width: 4px;
+}
+
+.milkdown-outline-rail button[aria-current='true'] .milkdown-outline-rail__tick {
+  background: var(--mlk-accent-primary, #3370ff);
+}
+
+.milkdown-outline-rail__label {
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milkdown-outline-rail:hover ul,
+.milkdown-outline-rail:focus-within ul {
+  gap: 0;
+  width: 240px;
+  padding: 6px;
+  overflow-y: auto;
+  border-color: var(--mlk-border-menu, #d9dde5);
+  background: var(--mlk-surface-floating, rgba(255, 255, 255, 0.96));
+  box-shadow: var(--mlk-shadow-menu, 0 8px 24px rgba(31, 35, 41, 0.12), 0 1px 3px rgba(31, 35, 41, 0.08));
+}
+
+.milkdown-outline-rail:hover button,
+.milkdown-outline-rail:focus-within button {
+  min-height: 28px;
+  padding: 4px 8px;
+}
+
+.milkdown-outline-rail:hover li[data-level='2'] button,
+.milkdown-outline-rail:focus-within li[data-level='2'] button {
+  padding-left: 20px;
+}
+
+.milkdown-outline-rail:hover li[data-level='3'] button,
+.milkdown-outline-rail:focus-within li[data-level='3'] button {
+  padding-left: 32px;
+}
+
+.milkdown-outline-rail:hover li[data-level='4'] button,
+.milkdown-outline-rail:focus-within li[data-level='4'] button {
+  padding-left: 44px;
+}
+
+.milkdown-outline-rail:hover .milkdown-outline-rail__label,
+.milkdown-outline-rail:focus-within .milkdown-outline-rail__label {
+  display: block;
+}
+
+.milkdown-outline-rail button:hover {
+  background: var(--mlk-surface-hover, #f2f3f5);
+  color: var(--mlk-text-body, #1f2329);
+}
+
+.milkdown-outline-rail button[aria-current='true'] {
+  color: var(--mlk-text-accent, #1d4ed8);
+}
+
+.milkdown-outline-rail button:focus-visible {
+  outline: 2px solid var(--mlk-accent-outline, rgba(51, 112, 255, 0.35));
+  outline-offset: 1px;
+}
+
+/* ─── `@` internal-link picker (phase 8, SP2-5) ───────────────────────────────
+ * Same surface language as the slash menu (portal inside `.milkdown`, absolute, tokens), so
+ * dark mode follows the phase-6 palette without extra rules.
+ */
+.milkdown-editor-wrapper .milkdown .milkdown-mention-menu {
+  position: absolute;
+  z-index: var(--milkdown-layer-dropdown-menu, 30);
+  box-sizing: border-box;
+  width: min(360px, calc(100vw - 24px));
+  max-height: 320px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--mlk-border-menu, #d9dde5);
+  border-radius: 10px;
+  background: var(--mlk-surface-raised, #ffffff);
+  box-shadow: var(--mlk-shadow-dropdown, 0 12px 32px rgba(31, 35, 41, 0.14), 0 1px 3px rgba(31, 35, 41, 0.08));
+  color: var(--mlk-text-body, #1f2329);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.milkdown-mention-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 6px 6px;
+  color: var(--mlk-text-muted, #646a73);
+  font-size: 12px;
+}
+
+.milkdown-mention-menu__toggle {
+  padding: 2px 8px;
+  border: 1px solid var(--mlk-border-default, #d0d5dd);
+  border-radius: 999px;
+  background: var(--mlk-surface-base, #ffffff);
+  color: var(--mlk-text-muted, #646a73);
+  font: inherit;
+  cursor: pointer;
+}
+
+.milkdown-mention-menu__toggle[aria-checked='true'] {
+  border-color: var(--mlk-border-warning, #fedf89);
+  background: var(--mlk-surface-warning, #fffaeb);
+  color: var(--mlk-text-warning, #93370d);
+}
+
+.milkdown-mention-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.milkdown-mention-menu li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.milkdown-mention-menu li.active {
+  background: var(--mlk-surface-hover, #f2f3f5);
+}
+
+.milkdown-mention-menu__title {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milkdown-mention-menu__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--mlk-text-muted, #646a73);
+  font-size: 12px;
+}
+
+.milkdown-mention-menu__badge {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--mlk-accent-soft, rgba(51, 112, 255, 0.1));
+  color: var(--mlk-text-accent, #1d4ed8);
+}
+
+.milkdown-mention-menu__badge.is-warning {
+  background: var(--mlk-surface-warning, #fffaeb);
+  color: var(--mlk-text-warning, #93370d);
+}
+
+.milkdown-mention-menu__path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.milkdown-mention-menu__status {
+  padding: 8px;
+  color: var(--mlk-text-muted, #646a73);
+}

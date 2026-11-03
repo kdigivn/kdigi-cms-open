@@ -1,0 +1,69 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Security problems:** do not use this form — see SECURITY.md.
+        Please do not paste secrets, real customer data or private URLs.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open /admin ...
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: KDIGI CMS version / commit
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: How do you run it?
+      options:
+        - Docker Compose
+        - Coolify
+        - Other Docker / VPS
+        - Local pnpm dev
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Admin UI / editor
+        - REST / GraphQL API
+        - Media / storage
+        - SEO
+        - Access control / roles
+        - Multi-site
+        - WordPress migration
+        - Docker / deployment
+        - Documentation
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Relevant server logs or browser console output (redact secrets).
+      render: shell
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Node.js version, PostgreSQL version, browser.

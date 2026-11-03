@@ -1,0 +1,166 @@
+/**
+ * Phase 7a (Lark editor stabilization plan): viewport-fixed layout for the
+ * focus-mode shell, the Shortcuts help sheet, and the Find/Replace panel.
+ *
+ * `milkdown-editor-core.css` and `milkdown-editor-core.tsx` are owned by
+ * another phase/agent and cannot be edited here (see CLAUDE.md). Every rule
+ * below is written so it wins the cascade regardless of CSS import order —
+ * either by scoping under `.milkdown-editor-wrapper` (which only the panels
+ * below live inside, raising specificity over the bare class the original
+ * rule uses) or, where the original selector already includes that ancestor,
+ * by repeating a class token in the selector to add one specificity level
+ * (e.g. `.is-focus-mode.is-focus-mode`) without changing what it matches.
+ * This file only OVERRIDES specific properties — every property this file
+ * does not redeclare (grid layout, `isolation: isolate`, box-shadow, etc.)
+ * still comes from the original rule, since CSS cascades per-property, not
+ * per-rule.
+ *
+ * Imported by the panel components this phase owns
+ * (`milkdown-focus-panel.tsx`, `milkdown-shortcut-help-panel.tsx`,
+ * `milkdown-find-replace-panel.tsx`) rather than by `milkdown-editor-core.tsx`
+ * itself — see each component's import for why: Next.js/webpack treats a
+ * global CSS import as applying wherever the importing module is reachable
+ * from, so this loads correctly as long as any one of those three panels is
+ * part of the page, which is always true whenever the editor itself mounts.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Focus mode: full-bleed viewport shell (USER REQUIREMENT — screenshot-
+ * verified regression: the shipped `inset: 16px` + `border-radius: 18px` on
+ * `.milkdown-editor-wrapper.is-focus-mode` left a ~16px band all around the
+ * shell where the underlying Payload admin page (nav text, corner buttons)
+ * stayed visible/reachable, defeating the point of focus mode.)
+ * ------------------------------------------------------------------ */
+.milkdown-editor-wrapper.is-focus-mode.is-focus-mode {
+  inset: 0;
+  /* `inset: 0` on a `position: fixed` box already spans the visual viewport
+     exactly (unlike `100vw`, it never over-counts a vertical scrollbar) —
+     kept as the primary mechanism. `width`/`height` are set too per the
+     explicit requirement and as a defensive fallback for the (rare) case an
+     ancestor establishes its own containing block for fixed descendants
+     (e.g. a `transform`d Payload layout wrapper), where `inset: 0` would
+     resolve against that ancestor instead of the viewport but explicit
+     viewport units would not. The outer page scrollbar is hidden by
+     `useBodyScrollLock` while focus mode is open, so the `100vw` scrollbar
+     over-count edge case does not apply here. */
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  border-radius: 0;
+  background: var(--mlk-surface-base, #fff);
+  z-index: var(--milkdown-layer-focus-shell);
+}
+
+/* The exit-controls token belongs to EXIT BUTTONS ONLY, never to whole
+   containers (Review B High-2: with the entire focus top bar at z:1300 it
+   covered the Insert Image modal's own header at 950/960, and the whole
+   Shortcuts sheet at 1300 tied with — and via DOM order covered — "Exit
+   focus"). The focus top bar itself only needs to stack above the shell's
+   content; Payload chrome is already beneath the fixed shell
+   (`--milkdown-layer-focus-shell`), so no elevated token is needed here. */
+.milkdown-editor-wrapper.is-focus-mode .milkdown-editor-toolbar.milkdown-editor-toolbar {
+  z-index: 1;
+}
+
+.milkdown-editor-wrapper.is-focus-mode .milkdown-focus-exit-button {
+  position: relative;
+  z-index: var(--milkdown-layer-exit-controls);
+}
+
+@media (max-width: 900px) {
+  /* The shipped mobile breakpoint already zeroed inset/border-radius; this
+     rule only exists so `width`/`height` stay applied at every viewport,
+     since the base (non-media) rule above is what sets them. */
+  .milkdown-editor-wrapper.is-focus-mode.is-focus-mode {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Shortcuts help sheet: viewport-fixed instead of wrapper-relative.
+ *
+ * Confirmed defect (reports/phase-01-baseline-evidence.md): the shipped
+ * `.milkdown-side-sheet { position: absolute; inset: 0 }` is contained by
+ * `.milkdown-editor-wrapper` — which is `position: relative` with a height
+ * equal to the document's CONTENT height outside focus mode, not the
+ * viewport. On a long document the sheet (and its backdrop) inherit that
+ * inflated height, so the panel's own content — including its close button
+ * on a short enough page — can land far outside the visible screen, and the
+ * backdrop can intercept clicks meant for the outer toolbar. Anchoring to
+ * the viewport with `position: fixed` and bounding the panel with a
+ * viewport-derived `max-height` (fixed header, `overflow: auto` body) fixes
+ * both regardless of document length or scroll offset.
+ * ------------------------------------------------------------------ */
+.milkdown-editor-wrapper .milkdown-side-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--milkdown-layer-sheet);
+}
+
+.milkdown-editor-wrapper .milkdown-side-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+.milkdown-editor-wrapper .milkdown-side-sheet__panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+  max-height: 100vh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  /* Sheet CONTAINER stacks on the sheet token (above its backdrop via DOM
+     order, below the media modal); only its close button gets the
+     exit-controls token — see the token-scoping note above (Review B High-2). */
+  z-index: var(--milkdown-layer-sheet);
+}
+
+.milkdown-editor-wrapper .milkdown-side-sheet__close {
+  position: relative;
+  z-index: var(--milkdown-layer-exit-controls);
+}
+
+.milkdown-editor-wrapper .milkdown-side-sheet__header {
+  flex: 0 0 auto;
+  padding: 20px 20px 12px;
+}
+
+/* New wrapper element (added in `milkdown-shortcut-help-panel.tsx`) around
+   the two `<section>` groups so the header can stay fixed while only the
+   body scrolls — the shipped markup had the header and sections as flex
+   siblings with no dedicated scroll boundary between them. */
+.milkdown-editor-wrapper .milkdown-side-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 20px 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.milkdown-editor-wrapper .milkdown-side-sheet__section {
+  padding-right: 4px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Find/replace panel: viewport-fixed with a bounded max-height so its rows
+ * can never be pushed past the fold on a long document (same root cause
+ * class as the side sheet above, just without a backdrop since this panel
+ * is a non-modal floating widget the user keeps open while scrolling/editing).
+ * ------------------------------------------------------------------ */
+.milkdown-editor-wrapper .milkdown-find-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: var(--milkdown-layer-sheet);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}

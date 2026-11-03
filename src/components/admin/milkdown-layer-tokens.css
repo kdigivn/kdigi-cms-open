@@ -1,0 +1,100 @@
+/**
+ * Phase 1 deliverable (Lark editor stabilization plan, Red Team Session 1 F6).
+ *
+ * Named z-index tokens for every stacked surface the editor can show, plus
+ * the scroll-ownership map and escape-priority order below. Phases 4-6
+ * consume these custom properties instead of inventing new numeric z-index
+ * values; Phase 7 only applies/refactors the remaining surfaces onto them.
+ *
+ * This file does NOT rewire any existing selector yet — the numeric
+ * `z-index` values already shipped in `milkdown-editor-core.css` (20 / 30 /
+ * 35 / 240) and `milkdown-lark-theme.css` (1200) stay in force until the
+ * phase that owns each surface switches it to `var(--milkdown-layer-*)`.
+ * The values below are chosen so that swap is a no-op change in stacking
+ * order (see the inline mapping comment on each token).
+ *
+ * Scope note: `--milkdown-layer-payload-chrome` documents where Payload's own
+ * admin chrome (nav, document controls, toasts) sits relative to the editor;
+ * it is a reference point, not a value this file is allowed to apply to
+ * Payload's markup (out of ownership — see CLAUDE.md admin-theming rule).
+ */
+:root {
+  /* Reference only — Payload's own admin chrome (nav sidebar, step nav,
+     toasts). Not produced or consumed by editor code; recorded so the
+     editor's layers can be reasoned about relative to it. Payload does not
+     expose a stable numeric z-index for this today (unscoped in its own
+     stylesheets), so this token intentionally has no assigned number. */
+  --milkdown-layer-payload-chrome: auto;
+
+  /* The `.milkdown-editor-wrapper.is-focus-mode` shell (position: fixed,
+     covers the viewport). Currently shipped as z-index: 240. */
+  --milkdown-layer-focus-shell: 240;
+
+  /* The Crepe floating format toolbar shown on text selection
+     (`.milkdown-toolbar[data-show='true']`). Currently unscoped (relies on
+     Crepe's own stacking context + `transform`/`opacity` transition in
+     milkdown-editor-core.css) — assign this when Phase 4 owns that file. */
+  --milkdown-layer-floating-toolbar: 500;
+
+  /* Dropdown/slash menus anchored to the floating toolbar or a slash trigger:
+     Crepe's built-in `.milkdown-slash-menu` and the custom
+     `.milkdown-selection-block-menu` (Turn Into dropdown). Currently shipped
+     as z-index: 1200 for the selection-block-menu; the slash menu is
+     unscoped and relies on Crepe's internal stacking. */
+  --milkdown-layer-dropdown-menu: 1200;
+
+  /* Side sheets that slide in over the editor area (currently only the
+     Shortcuts help panel, `.milkdown-side-sheet`). Currently shipped as
+     z-index: 30. NOTE: also confined to `.milkdown-editor-wrapper`'s
+     `position: relative` + `overflow: hidden` box today — see the
+     scroll-ownership map below for why that is a defect, not just a
+     z-index concern. */
+  --milkdown-layer-sheet: 900;
+
+  /* Modal backdrop (`.milkdown-modal__backdrop`) — dims content behind a
+     modal. Sits directly under its own panel and above sheets/toolbar so a
+     modal can be opened from within a sheet if a future surface needs it. */
+  --milkdown-layer-modal-backdrop: 950;
+
+  /* Modal panel (`.milkdown-modal__panel`) — currently the Insert Image
+     modal. Currently shipped as z-index: 35 (with backdrop also at 35,
+     relying on DOM order rather than z-index to stack above the backdrop). */
+  --milkdown-layer-modal-panel: 960;
+
+  /* Exit/close controls that must remain clickable above whatever surface
+     they close (sheet close button, modal close button, focus-mode "Exit"
+     button, dropdown-outside-click targets). Kept as the highest editor
+     layer so no future surface can visually cover an exit affordance. */
+  --milkdown-layer-exit-controls: 1300;
+}
+
+/**
+ * Escape-priority order (highest-priority / innermost first). A single
+ * `Escape` keydown or outside-pointer event must close only the topmost open
+ * layer, never more than one at a time:
+ *
+ *   1. nested menu       (Turn Into dropdown / slash menu)
+ *   2. find/help sheet    (Find & Replace panel, Shortcuts help panel)
+ *   3. media modal        (Insert Image modal)
+ *   4. focus mode         (Focus shell)
+ *
+ * `milkdown-editor-core.tsx`'s `onKeyDown` consults an open-order stack
+ * (pushed on open, removed on close for each of the five surfaces above) and
+ * closes only the LAST-opened entry — never a fixed check-in-order list —
+ * so a single Escape keypress closes exactly the topmost surface even when
+ * two non-mutually-exclusive surfaces are open at once (e.g. Find open, then
+ * Image opened from the still-visible toolbar).
+ */
+
+/**
+ * Scroll-ownership map — which element owns `overflow`/scroll position while
+ * each layer is open, and what must be restored on close:
+ *
+ * | Layer          | Scroll owner                                   | Restore on close |
+ * |----------------|-------------------------------------------------|-------------------|
+ * | Base editor    | `.milkdown` (Crepe's own ProseMirror scroller)   | n/a (never locked) |
+ * | Focus shell    | `.milkdown` inside the fixed shell; outer page locked via the reference-counted `useBodyScrollLock` (snapshot/restore of body overflow + scroll position, incl. unmount paths) | exact body styles + scroll position |
+ * | Side sheet     | `.milkdown-side-sheet__body` internal scroll — the sheet is viewport-fixed with a `100dvh`-bounded panel (fixed header, `overflow: auto` body); the historical wrapper-contained `position:absolute` defect is fixed in `milkdown-panel-layers.css` | body lock refcount released on close/unmount |
+ * | Modal          | `.milkdown-media-modal`'s results region — viewport-fixed panel with fixed header/actions and an independently scrollable grid (Phase 8 rewrite) | body lock refcount released on close/unmount |
+ * | Dropdown menu  | No scroll lock; menu is `position: fixed` (viewport-relative, correctly escapes the wrapper) with its own `overflow-y: auto` region (`.milkdown-selection-block-menu`, max-height clamped to `100vh - 16px`). | n/a |
+ */

@@ -1,0 +1,66 @@
+# KDIGI CMS — local stack: Postgres + the CMS app.
+#
+#   docker compose up --build          # app on http://localhost:3000/admin (first user is created in the UI)
+#   SEED_DEMO=true docker compose up   # same, plus an idempotent demo site with sample content
+#   docker compose up db               # only Postgres — then run `pnpm dev` on the host (see .env.example)
+#
+# Migrations run automatically on every app start. Data lives in named volumes
+# (postgres_data, media_data, app_data) and survives `docker compose down`;
+# `docker compose down -v` wipes it.
+#
+# This file is for local use. For a server see docker-compose.coolify.yml and docs/deploy.md.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: kdigi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kdigi}
+      POSTGRES_DB: kdigi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Bound to localhost only, so the default dev password is not reachable from the network.
+      - '127.0.0.1:${DB_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kdigi -d kdigi']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    # Optional extras (AI keys, reCAPTCHA, ...) can live in a local .env; the values below win.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URI: postgres://kdigi:${POSTGRES_PASSWORD:-kdigi}@db:5432/kdigi
+      # Public URL of the CMS as the browser sees it (also the media URL prefix).
+      PAYLOAD_PUBLIC_SERVER_URL: ${PAYLOAD_PUBLIC_SERVER_URL:-http://localhost:3000}
+      # Empty = a random secret is generated once and kept in the app_data volume.
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-}
+      SEED_DEMO: ${SEED_DEMO:-}
+      MEDIA_DIR: /app/media
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    volumes:
+      - media_data:/app/media
+      - app_data:/app/data
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media_data:
+  app_data:
