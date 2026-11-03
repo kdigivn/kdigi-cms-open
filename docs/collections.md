@@ -47,7 +47,7 @@ REST: pass `?locale=vi|en` (and optionally `fallback-locale`); `locale=all` retu
 
 ### Uniqueness
 
-Slugs are unique per site for pages, posts, products and landings (`(tenant, slug)`), and shortcode names per site (`(tenant, name)`); these five are **partial** unique indexes (`WHERE deleted_at IS NULL`), so trashed rows do not block reuse. Taxonomies are unique per `(tenant, type, slug)` (a `category` and a `tag` may share a slug) and redirects per `(tenant, from)`. All of them are created in the baseline migration `src/migrations/20261103_042158_initial.ts`; `sites.siteKey` and `users.email` are unique columns. Authors have no database index: slug uniqueness per site is checked in a collection `beforeValidate` hook.
+Slugs are unique per site for pages, posts, products and landings (`(tenant, slug)`), and shortcode names per site (`(tenant, name)`); these five are **partial** unique indexes (`WHERE deleted_at IS NULL`), so trashed rows do not block reuse. Taxonomies are unique per `(tenant, type, slug)` (a `category` and a `tag` may share a slug) and redirects per `(tenant, from)`. All of them are created in the baseline migration `src/migrations/20261103_042515_initial.ts`; `sites.siteKey` and `users.email` are unique columns. Authors have no database index: slug uniqueness per site is checked in a collection `beforeValidate` hook.
 
 ### Markdown content fields
 
