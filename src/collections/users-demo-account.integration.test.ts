@@ -31,7 +31,9 @@ describe('Demo account protection', { skip: !isIntegrationEnabled ? 'PAYLOAD_INT
     payload = await getIntegrationPayload()
     fixture = await setupTwoTenants(payload, 'users-demo')
     previousEnv = process.env.DEMO_ACCOUNT_EMAILS
-    // tenantA.editor is the "public demo" account; tenantB.editor is an ordinary editor.
+    // tenantA.editor is the "public demo" account; tenantB.editor is an ordinary editor. Fixture
+    // users carry an API key; the demo scenarios start from an account whose key switch is off.
+    await payload.update({ collection: 'users', id: fixture.tenantA.editor.id, data: { enableAPIKey: false }, overrideAccess: true })
     process.env.DEMO_ACCOUNT_EMAILS = ` ${fixture.tenantA.editor.email.toUpperCase()} , other-demo@example.com`
   })
 
