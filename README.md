@@ -1,11 +1,11 @@
 # KDIGI CMS
 
-**CMS headless mã nguồn mở, quản lý nhiều website trên một hệ thống duy nhất.**
-Payload 3 · Next.js 15 · PostgreSQL · Soạn thảo Markdown · SEO tích hợp · Giấy phép MIT
+**CMS headless AI-native mã nguồn mở: người biên tập và AI agent cùng quản lý nội dung của nhiều website trên một hệ thống.**
+Payload 3 · Next.js 15 · PostgreSQL · Máy chủ MCP & CLI `kcms` · Soạn thảo Markdown · SEO tích hợp · Giấy phép MIT
 
 🇬🇧 [English version](README.en.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Tài liệu: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Demo trực tiếp](https://app.opencms.kdigi.vn/admin)
 
-KDIGI CMS là trang quản trị và API (REST + GraphQL) để quản lý nội dung cho nhiều website cùng lúc. Website công khai của bạn (Next.js, Astro, Nuxt, mobile app…) lấy nội dung qua API; CMS lo phần soạn thảo, SEO, media, phân quyền và di chuyển dữ liệu từ WordPress. Phù hợp với agency, blogger, doanh nghiệp nhỏ và người đang muốn rời WordPress.
+KDIGI CMS là trang quản trị và API (REST + GraphQL) để quản lý nội dung cho nhiều website cùng lúc. Website công khai của bạn (Next.js, Astro, Nuxt, mobile app…) lấy nội dung qua API; CMS lo phần soạn thảo, SEO, media, phân quyền và di chuyển dữ liệu từ WordPress. **AI-native:** AI agent (Claude Code, Codex, Cursor, VS Code, OMP…) kết nối qua máy chủ MCP tích hợp sẵn để viết, sửa, hẹn giờ, đăng bài và kiểm tra SEO, với đúng vai trò và quyền của người dùng sở hữu API key, không cần plugin hay hệ thống đăng nhập thứ hai. Phù hợp với agency, blogger, doanh nghiệp nhỏ, đội nội dung dùng AI và người đang muốn rời WordPress.
 
 ## Dùng thử trực tiếp
 
@@ -21,6 +21,7 @@ Mở <https://app.opencms.kdigi.vn/admin> và đăng nhập bằng tài khoản 
 
 ## Tính năng
 
+- **AI-native (MCP & CLI):** máy chủ MCP tích hợp sẵn tại `/api/mcp` cho Claude Code, Codex, Cursor, VS Code, OMP… viết, sửa, hẹn giờ, đăng bài và kiểm tra SEO bằng API key của từng người dùng; CLI `kcms` để làm việc với bài viết dưới dạng file Markdown và cấu hình client chỉ bằng một lệnh. Xem [docs/ai-integration.md](docs/ai-integration.md).
 - **Đa website (multi-site):** một bản cài phục vụ nhiều tên miền; mỗi site có thương hiệu, SEO mặc định, thông tin liên hệ, footer, menu, nội dung và (tùy chọn) kho lưu trữ riêng. Dữ liệu được cách ly theo site bằng kiểm soát truy cập tường minh.
 - **Phân quyền:** `super-admin` › `admin` › `editor` › `author`, gán người dùng vào từng site.
 - **Mô hình nội dung:** Trang, Bài viết, Sản phẩm/dịch vụ, Landing page (block), Chuyên mục/Thẻ, Tác giả, Menu dạng cây, FAQ, Shortcode, Redirect, Bình luận (có reCAPTCHA), Đánh giá sao. Lịch sử phiên bản, thùng rác, hẹn giờ đăng.
@@ -30,7 +31,6 @@ Mở <https://app.opencms.kdigi.vn/admin> và đăng nhập bằng tài khoản 
 - **SEO:** JSON-LD (`@graph`), mẫu tiêu đề/mô tả kiểu RankMath, chấm điểm & kiểm tra SEO, gợi ý liên kết nội bộ, redirect tự động khi đổi slug, tạo nội dung SEO bằng AI (tùy chọn).
 - **Công cụ biên tập:** lịch nội dung / bảng điều khiển biên tập.
 - **Tích hợp frontend:** REST/GraphQL, webhook revalidate (ISR) khi nội dung đổi, link "xem trên site".
-- **AI-native (MCP & CLI):** máy chủ MCP tích hợp sẵn tại `/api/mcp` cho Claude Code, Codex, Cursor, VS Code, OMP… viết, sửa, hẹn giờ, đăng bài và kiểm tra SEO bằng API key của từng người dùng; CLI `kcms` để làm việc với bài viết dưới dạng file Markdown và cấu hình client chỉ bằng một lệnh. Xem [docs/ai-integration.md](docs/ai-integration.md).
 - **Di chuyển từ WordPress:** pipeline nhập nhiều giai đoạn (thô → chuẩn hóa → nhập) có cổng duyệt và sao lưu. Xem [hướng dẫn](docs/wordpress-migration/README.md).
 - **Triển khai dễ:** `docker compose up` là chạy; có sẵn cấu hình Coolify; site demo kèm nội dung mẫu.
 

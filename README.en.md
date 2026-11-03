@@ -1,11 +1,11 @@
 # KDIGI CMS
 
-**An open-source headless CMS that runs many websites from one install.**
-Payload 3 · Next.js 15 · PostgreSQL · Markdown editor · Built-in SEO · MIT license
+**An AI-native, open-source headless CMS: editors and AI agents manage the content of many websites from one install.**
+Payload 3 · Next.js 15 · PostgreSQL · MCP server & `kcms` CLI · Markdown editor · Built-in SEO · MIT license
 
 🇻🇳 [Phiên bản tiếng Việt](README.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Documentation: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Live demo](https://app.opencms.kdigi.vn/admin)
 
-KDIGI CMS is an admin panel plus REST and GraphQL API for managing the content of several websites at once. Your public sites (Next.js, Astro, Nuxt, a mobile app…) read content over the API; the CMS handles editing, SEO, media, permissions and moving off WordPress. It suits agencies, bloggers, small businesses and anyone leaving WordPress.
+KDIGI CMS is an admin panel plus REST and GraphQL API for managing the content of several websites at once. Your public sites (Next.js, Astro, Nuxt, a mobile app…) read content over the API; the CMS handles editing, SEO, media, permissions and moving off WordPress. **AI-native:** AI agents (Claude Code, Codex, Cursor, VS Code, OMP, …) connect to the built-in MCP server to write, edit, schedule, publish and SEO-check content with exactly the role and sites of the user who owns the API key, with no plugin and no second login system. It suits agencies, bloggers, small businesses, content teams working with AI, and anyone leaving WordPress.
 
 ## Try it live
 
@@ -21,6 +21,7 @@ This is a shared sandbox: the demo account cannot change its own email, password
 
 ## Features
 
+- **AI-native (MCP & CLI):** a built-in MCP server at `/api/mcp` lets Claude Code, Codex, Cursor, VS Code, OMP and other agents write, edit, schedule, publish and SEO-check content with a per-user API key; the `kcms` CLI edits posts as Markdown files and configures clients in one command. See [docs/ai-integration.md](docs/ai-integration.md).
 - **Multi-site:** one install serves many domains; each site has its own branding, SEO defaults, contact/footer data, menus, content and (optionally) its own storage. Data is isolated per site by explicit access control.
 - **Roles:** `super-admin` › `admin` › `editor` › `author`, with users assigned to specific sites.
 - **Content model:** Pages, Posts, Products (product/service pages), Landings (block layouts), Categories/Tags, Authors, tree Menus, FAQs, Shortcodes, Redirects, Comments (with reCAPTCHA) and star Ratings. Version history, trash and scheduled publishing.
@@ -30,7 +31,6 @@ This is a shared sandbox: the demo account cannot change its own email, password
 - **SEO:** JSON-LD `@graph`, RankMath-style title/description templates, SEO audit and scoring, internal-link suggestions, automatic redirects on slug change, optional AI-assisted SEO text.
 - **Editorial tools:** content calendar / editorial dashboard.
 - **Frontend integration:** REST/GraphQL, revalidate webhook (ISR) on content changes, "view on site" links.
-- **AI-native (MCP & CLI):** a built-in MCP server at `/api/mcp` lets Claude Code, Codex, Cursor, VS Code, OMP and other agents write, edit, schedule, publish and SEO-check content with a per-user API key; the `kcms` CLI edits posts as Markdown files and configures clients in one command. See [docs/ai-integration.md](docs/ai-integration.md).
 - **WordPress migration:** multi-phase importer (raw → staged → import) with an approval gate and backups. See the [guide](docs/wordpress-migration/README.md).
 - **Easy to deploy:** `docker compose up` and you are running; Coolify compose file included; a demo site with sample content.
 
