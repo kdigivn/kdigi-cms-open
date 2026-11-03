@@ -33,6 +33,12 @@ R2 credentials are **not** environment variables: they are configured per site i
 | `FRONTEND_BASE_URL` | unset | Public base URL of a frontend, used to build document URLs for the admin "view on site" links. Fallback chain: this value → `https://<Sites.domain>` → `http://localhost:3002`. It applies to **every** site, so leave it unset on a multi-site install and let each site's `domain` decide. It is **not** the revalidation target; revalidation calls `https://<Sites.domain>/api/cms/revalidate` per site (the manual button falls back to `http://localhost:3002` only outside production). | `src/endpoints/frontend-doc-url.ts`, `src/endpoints/revalidate-frontend.ts` |
 | `REVALIDATE_SECRET` | unset | When set, every revalidate ping (job and the editor's manual button) carries the header `x-revalidate-secret: <value>`, so a frontend can reject pings that do not come from this CMS. One value for all sites; unset keeps the ping unauthenticated. | `src/lib/revalidate-headers.ts` |
 
+## AI agents (MCP)
+
+| Variable | Default | Description | Read in |
+| --- | --- | --- | --- |
+| `MCP_ENABLED` | `true` | Serves the Model Context Protocol endpoint `POST /api/mcp` for Claude Code, Codex, Cursor and other agents. Callers authenticate with a user's API key (`Authorization: Bearer <key>`) and act with that user's role and sites. `false` makes the route answer 404. See [ai-integration.md](ai-integration.md). | `src/endpoints/mcp.ts` |
+
 ## AI SEO (optional)
 
 | Variable | Default | Description | Read in |

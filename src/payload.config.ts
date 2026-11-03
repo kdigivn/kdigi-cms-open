@@ -34,6 +34,7 @@ import { frontendDocUrlEndpoint } from './endpoints/frontend-doc-url'
 import { seoAiGenerateEndpoint } from './endpoints/seo-ai-generate'
 import { seoAuditEndpoint } from './endpoints/seo-audit'
 import { internalLinkSuggestEndpoint } from './endpoints/internal-link-suggest'
+import { mcpEndpoints } from './endpoints/mcp'
 import { r2StorageAdapter } from './lib/r2-storage-adapter'
 import { revalidateFrontendTask } from './jobs/revalidate-frontend-task'
 
@@ -166,7 +167,7 @@ export default buildConfig({
   collections: [Users, Media, Sites, Taxonomies, Authors, Menus, Faqs, Pages, Posts, Comments, Products, Landings, Shortcodes, Redirects, RatingEvents],
   // create-comment + env-page live on their collections (their URLs sit inside
   // collection namespaces, which the collection REST router owns).
-  endpoints: [submitRatingEndpoint, revalidateFrontendEndpoint, frontendDocUrlEndpoint, seoAiGenerateEndpoint, seoAuditEndpoint, internalLinkSuggestEndpoint],
+  endpoints: [submitRatingEndpoint, revalidateFrontendEndpoint, frontendDocUrlEndpoint, seoAiGenerateEndpoint, seoAuditEndpoint, internalLinkSuggestEndpoint, ...mcpEndpoints],
   // Keep folder data on collections (Media uses folders: true) but hide Payload's
   // global "Browse by Folder" nav view — folder browsing is handled by the custom
   // Media grid (media-grid-list-view + media-folder-bar) instead.

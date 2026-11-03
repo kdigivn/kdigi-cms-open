@@ -40,6 +40,8 @@ services:
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-}
       # Optional: header `x-revalidate-secret` on revalidate pings; public-demo account protection.
       - REVALIDATE_SECRET=${REVALIDATE_SECRET:-}
+      # AI agents: POST /api/mcp (API-key auth). Enabled unless set to "false".
+      - MCP_ENABLED=${MCP_ENABLED:-}
       - DEMO_ACCOUNT_EMAILS=${DEMO_ACCOUNT_EMAILS:-}
       - DEMO_ACCOUNT_PASSWORD=${DEMO_ACCOUNT_PASSWORD:-}
       # Optional integrations (empty = disabled).
