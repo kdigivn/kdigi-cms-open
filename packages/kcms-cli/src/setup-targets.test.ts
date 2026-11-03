@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+
+import { mergeCodexToml, planSetup, SETUP_TARGETS } from './setup-targets.js'
+
+const BASE = { baseUrl: 'https://cms.example.com', cwd: '/work/site', home: '/home/me' }
+const SECRET = 'change-me-real-key-value'
+
+describe('kcms setup', () => {
+  it('never embeds a key — every written config references the env var or a prompt', () => {
+    process.env.KCMS_API_KEY = SECRET
+    for (const target of SETUP_TARGETS) {
+      for (const scope of ['project', 'user'] as const) {
+        const plan = planSetup({ target, scope, ...BASE })
+        const written = plan.merge ? plan.merge('') : plan.snippet
+        assert.doesNotMatch(written, new RegExp(SECRET), `${target}/${scope} leaked the key`)
+        assert.match(written, /KCMS_API_KEY|\$\{input:kcms-api-key\}/, `${target}/${scope} has no key reference`)
+      }
+    }
+    delete process.env.KCMS_API_KEY
+  })
+
+  it('merges into an existing JSON config without dropping other servers', () => {
+    const plan = planSetup({ target: 'omp', scope: 'project', ...BASE })
+    const merged = JSON.parse(plan.merge!(JSON.stringify({ mcpServers: { other: { command: 'x' } }, extra: 1 })))
+    assert.deepEqual(Object.keys(merged.mcpServers).sort(), ['kdigi', 'other'])
+    assert.equal(merged.extra, 1)
+    assert.equal(merged.mcpServers.kdigi.url, 'https://cms.example.com/api/mcp')
+  })
+
+  it('replaces only the kdigi table in a Codex config', () => {
+    const existing = 'model = "x"\n\n[mcp_servers.kdigi]\nurl = "https://old.example.com/api/mcp"\n\n[mcp_servers.other]\ncommand = "y"\n'
+    const merged = mergeCodexToml(existing, 'https://cms.example.com/api/mcp')
+    assert.doesNotMatch(merged, /old\.example\.com/)
+    assert.match(merged, /\[mcp_servers\.other\]\ncommand = "y"/)
+    assert.equal(merged.match(/\[mcp_servers\.kdigi\]/g)?.length, 1)
+    assert.equal(mergeCodexToml(merged, 'https://cms.example.com/api/mcp'), merged)
+  })
+
+  it('puts OMP user config and skills under ~/.omp/agent', () => {
+    const plan = planSetup({ target: 'omp', scope: 'user', ...BASE })
+    assert.equal(plan.file, '/home/me/.omp/agent/mcp.json')
+    assert.equal(plan.skillDir, '/home/me/.omp/agent/skills/kcms')
+  })
+})

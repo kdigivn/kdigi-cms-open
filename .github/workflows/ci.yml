@@ -38,6 +38,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Build and pack the kcms CLI
+        run: |
+          pnpm --filter @kdigi/kcms-cli build
+          cd packages/kcms-cli && npm pack --dry-run
+
   # Real-Postgres access-control tests. A fresh database is migrated from the single
   # initial migration, which is also the CI proof that a clean install works.
   integration:

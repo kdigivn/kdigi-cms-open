@@ -7,7 +7,8 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/kcms-cli/package.json ./packages/kcms-cli/
 COPY patches ./patches
 RUN pnpm install --frozen-lockfile
 

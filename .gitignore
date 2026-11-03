@@ -23,7 +23,7 @@ wp-archive/
 /data/
 
 # --- Dependencies ----------------------------------------------------------------
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -39,6 +39,8 @@ yarn.lock
 /out/
 /build
 dist/
+# copy of skills/kcms made by the kcms-cli build
+packages/kcms-cli/skills/
 *.tsbuildinfo
 next-env.d.ts
 

@@ -49,6 +49,8 @@ const eslintConfig = defineConfig([
     'src/payload-types.ts',
     'src/payload-generated-schema.ts',
     'workers/**/.wrangler/**',
+    'packages/**/dist/**',
+    'packages/**/skills/**',
   ]),
 ])
 
