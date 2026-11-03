@@ -3,9 +3,19 @@
 **CMS headless mã nguồn mở, quản lý nhiều website trên một hệ thống duy nhất.**
 Payload 3 · Next.js 15 · PostgreSQL · Soạn thảo Markdown · SEO tích hợp · Giấy phép MIT
 
-🇬🇧 [English version](README.en.md) · 🌐 [opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Tài liệu](docs/README.md)
+🇬🇧 [English version](README.en.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Tài liệu: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Demo trực tiếp](https://app.opencms.kdigi.vn/admin)
 
 KDIGI CMS là trang quản trị và API (REST + GraphQL) để quản lý nội dung cho nhiều website cùng lúc. Website công khai của bạn (Next.js, Astro, Nuxt, mobile app…) lấy nội dung qua API; CMS lo phần soạn thảo, SEO, media, phân quyền và di chuyển dữ liệu từ WordPress. Phù hợp với agency, blogger, doanh nghiệp nhỏ và người đang muốn rời WordPress.
+
+## Dùng thử trực tiếp
+
+Mở <https://app.opencms.kdigi.vn/admin> và đăng nhập bằng tài khoản demo công khai:
+
+| Email | Mật khẩu | Vai trò |
+| --- | --- | --- |
+| `demo@opencms.kdigi.vn` | `Demo@2026` | `editor`, chỉ thấy site `demo` |
+
+Đây là môi trường thử nghiệm dùng chung: tài khoản demo không đổi được email/mật khẩu/API key của chính nó, và nội dung site `demo` được đặt lại mỗi đêm (03:00, giờ Việt Nam). Đừng nhập dữ liệu thật. Cách bật cơ chế này cho site của bạn: [cấu hình](docs/configuration.md#public-demo-accounts-optional).
 
 > **Nguồn gốc:** KDIGI CMS được tách ra từ một hệ thống CMS đa website đã chạy thực tế trong môi trường production, rồi tổng quát hóa để mọi người dùng chung.
 
@@ -95,6 +105,7 @@ Schema chỉ thay đổi bằng migration tường minh (`pnpm migrate`; trong D
 | `pnpm dev` / `pnpm build` / `pnpm start` | Phát triển / build / chạy production |
 | `pnpm migrate` | Áp dụng migration PostgreSQL |
 | `pnpm seed:demo` | Nạp site demo + nội dung mẫu (idempotent) |
+| `pnpm demo:reset` | Xóa và nạp lại site `demo`, đặt lại mật khẩu các tài khoản trong `DEMO_ACCOUNT_EMAILS` |
 | `pnpm typecheck` / `pnpm lint` | Kiểm tra TypeScript / ESLint (`next build` bỏ qua cả hai) |
 | `pnpm test` / `pnpm test:integration` / `pnpm test:e2e` | Unit test / test với PostgreSQL thật / Playwright |
 | `pnpm generate:types` / `pnpm generate:importmap` | Sinh type Payload / import map của admin |

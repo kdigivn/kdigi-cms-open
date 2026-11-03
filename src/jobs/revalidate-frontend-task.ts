@@ -7,6 +7,7 @@
  *
  *   POST https://{Sites.domain}/api/cms/revalidate
  *   { "collection": "<slug>", "id": "<doc id>", "slug": "<doc slug>" }
+ *   (+ header `x-revalidate-secret: $REVALIDATE_SECRET` when that env var is set)
  *
  * Failures throw so Payload retries with backoff and the failure is visible in the
  * jobs table, instead of disappearing into a `.catch()`. A tenant with no
@@ -16,6 +17,8 @@
  * with `overrideAccess: true` (the same pattern as the hooks that used to read it).
  */
 import type { TaskConfig } from 'payload'
+
+import { revalidateHeaders } from '../lib/revalidate-headers'
 
 export const REVALIDATE_FRONTEND_TASK_SLUG = 'revalidateFrontend'
 
@@ -67,7 +70,7 @@ export const revalidateFrontendTask: TaskConfig<{
     const url = `https://${domain}/api/cms/revalidate`
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: revalidateHeaders(),
       body: JSON.stringify({
         collection: input.collection,
         id: input.id,

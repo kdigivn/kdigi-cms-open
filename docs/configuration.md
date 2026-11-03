@@ -31,6 +31,7 @@ R2 credentials are **not** environment variables: they are configured per site i
 | --- | --- | --- | --- |
 | `ENABLE_JOBS_AUTORUN` | unset | `true` starts the job runner that executes queued "revalidate frontend" jobs (every 10 s, up to 25 jobs per pass) and recovers jobs stuck in `processing` for more than 5 minutes after a restart. Set it on **exactly one** instance — Payload has no cross-instance job lock. Without it, jobs are queued but never run and production logs a warning at boot. | `src/payload.config.ts` |
 | `FRONTEND_BASE_URL` | unset | Public base URL of a frontend, used to build document URLs for the admin "view on site" links. Fallback chain: this value → `https://<Sites.domain>` → `http://localhost:3002`. It applies to **every** site, so leave it unset on a multi-site install and let each site's `domain` decide. It is **not** the revalidation target; revalidation calls `https://<Sites.domain>/api/cms/revalidate` per site (the manual button falls back to `http://localhost:3002` only outside production). | `src/endpoints/frontend-doc-url.ts`, `src/endpoints/revalidate-frontend.ts` |
+| `REVALIDATE_SECRET` | unset | When set, every revalidate ping (job and the editor's manual button) carries the header `x-revalidate-secret: <value>`, so a frontend can reject pings that do not come from this CMS. One value for all sites; unset keeps the ping unauthenticated. | `src/lib/revalidate-headers.ts` |
 
 ## AI SEO (optional)
 
@@ -39,6 +40,17 @@ R2 credentials are **not** environment variables: they are configured per site i
 | `DEEPSEEK_API_KEY` | unset | API key for the DeepSeek API (OpenAI-compatible, base URL `https://api.deepseek.com`). Without it the AI SEO buttons return an error; nothing else is affected. | `src/lib/ai/deepseek-client.ts` |
 | `DEEPSEEK_MODEL` | unset | Model id to call, e.g. `deepseek-chat`. **There is no built-in default** — both variables are needed to use AI generation. Check a model with `pnpm verify:deepseek`. | `src/lib/ai/deepseek-client.ts` |
 | `SEO_AI_RATE_LIMIT` | `20` | Maximum AI SEO generations per user per minute (in-memory, per instance). | `src/endpoints/seo-ai-generate.ts` |
+
+## Public demo accounts (optional)
+
+Run a public sandbox login (for example a read-me-first demo editor) without letting visitors lock each other out. Fully opt-in: with `DEMO_ACCOUNT_EMAILS` unset nothing changes. Role and site boundaries still come from [roles and permissions](roles-and-permissions.md#demo-accounts).
+
+| Variable | Default | Description | Read in |
+| --- | --- | --- | --- |
+| `DEMO_ACCOUNT_EMAILS` | unset | Comma-separated emails (case-insensitive). These users cannot change their own **email, password, API key or API-key switch** (the request is rejected with a bilingual `403` message) and cannot delete themselves. Other users, including a super-admin, can still manage them. | `src/lib/demo-accounts.ts`, `src/collections/users.ts` |
+| `DEMO_ACCOUNT_PASSWORD` | unset | Password that `pnpm demo:reset` sets on every account in `DEMO_ACCOUNT_EMAILS` (min. 8 characters). Required by that command only. | `src/seed/demo-reset.ts` |
+
+`pnpm demo:reset` (in the Docker image it works as is; equivalent: `node --import tsx src/seed/demo-reset.ts`) wipes **only** the site with `siteKey = demo` (all its content, media files and folders, trash included), re-seeds it with the same data as `pnpm seed:demo`, and for each demo account creates it if missing and resets its password, role (`editor`) and sites (`demo` only). Other sites and users are never touched. Schedule it nightly, e.g. as a Coolify scheduled task on the `app` service with cron `0 3 * * *` and timezone `Asia/Ho_Chi_Minh`.
 
 ## Comments
 
@@ -61,6 +73,7 @@ Read by [`docker/entrypoint.sh`](../docker/entrypoint.sh) and [`docker-compose.y
 | Variable | Default | Description |
 | --- | --- | --- |
 | `SEED_DEMO` | unset | `true` loads the idempotent demo site and sample content after migrating ([getting started](getting-started.md)). |
+| `DEMO_ACCOUNT_EMAILS`, `DEMO_ACCOUNT_PASSWORD`, `REVALIDATE_SECRET` | unset | Forwarded by both compose files to the app container; see above. |
 | `SKIP_MIGRATIONS` | unset | `true` skips the automatic `payload migrate` on container start (use when migrations run as a separate release step, see [upgrading](upgrading.md)). |
 | `DATA_DIR` | `/app/data` | Where the entrypoint persists a generated `PAYLOAD_SECRET` (`payload-secret`). Mount a volume. |
 | `POSTGRES_PASSWORD` | `kdigi` (local compose) | Database password for the bundled PostgreSQL in the local compose file. The Coolify compose uses a generated `SERVICE_PASSWORD_POSTGRES`. |

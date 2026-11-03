@@ -3,9 +3,19 @@
 **An open-source headless CMS that runs many websites from one install.**
 Payload 3 · Next.js 15 · PostgreSQL · Markdown editor · Built-in SEO · MIT license
 
-🇻🇳 [Phiên bản tiếng Việt](README.md) · 🌐 [opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Documentation](docs/README.md)
+🇻🇳 [Phiên bản tiếng Việt](README.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Documentation: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Live demo](https://app.opencms.kdigi.vn/admin)
 
 KDIGI CMS is an admin panel plus REST and GraphQL API for managing the content of several websites at once. Your public sites (Next.js, Astro, Nuxt, a mobile app…) read content over the API; the CMS handles editing, SEO, media, permissions and moving off WordPress. It suits agencies, bloggers, small businesses and anyone leaving WordPress.
+
+## Try it live
+
+Open <https://app.opencms.kdigi.vn/admin> and sign in with the public demo account:
+
+| Email | Password | Role |
+| --- | --- | --- |
+| `demo@opencms.kdigi.vn` | `Demo@2026` | `editor`, sees the `demo` site only |
+
+This is a shared sandbox: the demo account cannot change its own email, password or API key, and the `demo` site is reset every night (03:00, Vietnam time). Do not enter real data. To enable the same protection on your own install see [configuration](docs/configuration.md#public-demo-accounts-optional).
 
 > **Origin:** KDIGI CMS was extracted from a multi-site CMS that ran in production, then generalised for everyone.
 
@@ -95,6 +105,7 @@ The schema only changes through explicit migrations (`pnpm migrate`; automatic o
 | `pnpm dev` / `pnpm build` / `pnpm start` | Develop / build / run production |
 | `pnpm migrate` | Apply PostgreSQL migrations |
 | `pnpm seed:demo` | Load the demo site + sample content (idempotent) |
+| `pnpm demo:reset` | Wipe and re-seed the `demo` site, reset the password of the accounts in `DEMO_ACCOUNT_EMAILS` |
 | `pnpm typecheck` / `pnpm lint` | TypeScript / ESLint checks (`next build` skips both) |
 | `pnpm test` / `pnpm test:integration` / `pnpm test:e2e` | Unit tests / real-PostgreSQL tests / Playwright |
 | `pnpm generate:types` / `pnpm generate:importmap` | Generate Payload types / admin import map |

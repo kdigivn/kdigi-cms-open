@@ -1,6 +1,6 @@
 {
   "name": "kdigi-cms",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "KDIGI CMS — open-source multi-site headless CMS (Payload 3 + Next.js + Postgres)",
   "license": "MIT",
   "author": "KDIGI <https://kdigi.vn>",
@@ -29,6 +29,7 @@
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
     "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:down",
     "seed:demo": "cross-env NODE_OPTIONS=--no-deprecation node --env-file-if-exists=.env --import tsx src/seed/seed-demo.ts",
+    "demo:reset": "cross-env NODE_OPTIONS=--no-deprecation node --env-file-if-exists=.env --import tsx src/seed/demo-reset.ts",
     "verify:deepseek": "node --env-file=.env --import tsx src/scripts/verify-deepseek-model.ts",
     "test:integration": "node --env-file-if-exists=.env --import tsx --test \"src/**/*.integration.test.ts\""
   },

@@ -28,7 +28,12 @@ Minimum production settings: `PAYLOAD_SECRET` (≥ 32 chars), `PAYLOAD_PUBLIC_SE
 
 External database instead of the bundled one: set `DATABASE_URI` and remove the `db` service together with the app's `depends_on` entry.
 
-Coolify tips: enable its scheduled database backups for the `db` volume and keep `media_data` in your server backup (below). Redeploys never touch named volumes.
+Coolify tip: keep `media_data` in your server backup (below). Redeploys never touch named volumes.
+
+Scheduled backups and tasks on Coolify:
+
+- Coolify's built-in scheduled database backups are offered for databases created as their own Coolify resource, not for the `db` service inside a Docker Compose resource. For the bundled `db`, run `pg_dump` from a Coolify **Scheduled Task** on the `db` service, or from a cron job on the Docker host (`docker exec <db container> pg_dump -U kdigi --format=custom kdigi > /backups/kdigi-$(date +%F).dump`, then delete dumps older than 14 days), and copy the dumps off the server.
+- Any recurring job for the app (for example [`pnpm demo:reset`](configuration.md#public-demo-accounts-optional) on a public demo) is a Coolify **Scheduled Task** on the `app` service with a cron expression and timezone. The runtime image includes `pnpm`, `src/` and the dev dependencies, so the command is simply `pnpm demo:reset` (equivalent: `node --import tsx src/seed/demo-reset.ts`).
 
 ## Option 2 — Any VPS with Docker Compose
 

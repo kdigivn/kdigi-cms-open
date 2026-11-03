@@ -1,4 +1,11 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import { APIError, type CollectionBeforeChangeHook, type CollectionBeforeDeleteHook, type CollectionBeforeValidateHook, type CollectionConfig } from 'payload'
+
+import {
+  changedLockedFields,
+  DEMO_ACCOUNT_DELETE_MESSAGE,
+  DEMO_ACCOUNT_LOCKED_MESSAGE,
+  isDemoAccountEmail,
+} from '../lib/demo-accounts'
 
 /**
  * The very first user of a fresh install — registered through the admin's
@@ -15,6 +22,26 @@ const promoteFirstUserToSuperAdmin: CollectionBeforeChangeHook = async ({ data, 
   const { totalDocs } = await req.payload.count({ collection: 'users', req, overrideAccess: true })
   if (totalDocs === 0) return { ...data, role: 'super-admin' }
   return data
+}
+
+/**
+ * Public demo accounts (`DEMO_ACCOUNT_EMAILS`, opt-in) cannot change their own email, password,
+ * API key or API-key switch. Only a request made BY that account is blocked: no `req.user`
+ * (Local API / `pnpm demo:reset`) and other users (a super-admin) stay free to manage it.
+ */
+const lockDemoAccountSelfChange: CollectionBeforeValidateHook = ({ data, originalDoc, operation, req }) => {
+  if (operation !== 'update' || !req.user || !originalDoc) return data
+  if (String(req.user.id) !== String(originalDoc.id) || !isDemoAccountEmail(originalDoc.email)) return data
+  if (changedLockedFields(data, originalDoc).length > 0) {
+    throw new APIError(DEMO_ACCOUNT_LOCKED_MESSAGE, 403, null, true)
+  }
+  return data
+}
+
+/** A demo account cannot delete itself (the collection `delete` access is already super-admin-only). */
+const blockDemoAccountSelfDelete: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  if (!req.user || String(req.user.id) !== String(id)) return
+  if (isDemoAccountEmail(req.user.email)) throw new APIError(DEMO_ACCOUNT_DELETE_MESSAGE, 403, null, true)
 }
 
 /**
@@ -67,7 +94,9 @@ export const Users: CollectionConfig = {
     delete: ({ req: { user } }) => user?.role === 'super-admin',
   },
   hooks: {
+    beforeValidate: [lockDemoAccountSelfChange],
     beforeChange: [promoteFirstUserToSuperAdmin],
+    beforeDelete: [blockDemoAccountSelfDelete],
   },
   fields: [
     {

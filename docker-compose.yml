@@ -46,6 +46,9 @@ services:
       # Empty = a random secret is generated once and kept in the app_data volume.
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-}
       SEED_DEMO: ${SEED_DEMO:-}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
+      DEMO_ACCOUNT_EMAILS: ${DEMO_ACCOUNT_EMAILS:-}
+      DEMO_ACCOUNT_PASSWORD: ${DEMO_ACCOUNT_PASSWORD:-}
       MEDIA_DIR: /app/media
     ports:
       - '${APP_PORT:-3000}:3000'

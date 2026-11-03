@@ -4,6 +4,16 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-03
+
+### Added
+
+- **Public demo account protection (opt-in):** `DEMO_ACCOUNT_EMAILS` (comma list). Listed users cannot change their own email, password, API key or API-key switch and cannot delete themselves (`403`, bilingual vi/en message). Unset = no change in behaviour. See [configuration](docs/configuration.md#public-demo-accounts-optional) and [roles and permissions](docs/roles-and-permissions.md#demo-accounts).
+- **`pnpm demo:reset`** (`src/seed/demo-reset.ts`): permanently deletes all content of the `demo` site only, re-seeds it with the demo seed and resets the accounts in `DEMO_ACCOUNT_EMAILS` (password from `DEMO_ACCOUNT_PASSWORD`, role `editor`, site `demo` only). Meant for a nightly scheduled task.
+- **`REVALIDATE_SECRET`:** when set, the revalidate ping (job and the editor's manual button) sends the header `x-revalidate-secret`, so a frontend can verify the caller. Unset = unchanged unauthenticated ping.
+- Both compose files forward `REVALIDATE_SECRET`, `DEMO_ACCOUNT_EMAILS` and `DEMO_ACCOUNT_PASSWORD`.
+- README links to the project website, hosted docs and the live demo.
+
 ## [1.0.1] - 2026-11-03
 
 ### Fixed
@@ -35,6 +45,7 @@ First public release of KDIGI CMS (MIT), a headless multi-site CMS on Payload 3.
 
 Domain-specific modules, optional CDN tooling, cloning pipelines and all site-specific one-off importers and fixtures from the private origin were not carried over to the open-source product.
 
-[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/kdigivn/kdigi-cms-open/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/kdigivn/kdigi-cms-open/releases/tag/v1.0.0

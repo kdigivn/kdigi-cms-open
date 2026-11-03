@@ -142,6 +142,10 @@ A site-scoped create through the REST API must carry `tenant` in the body: the f
 
 Sessions: `Users` is configured with a 180-day token expiration (`auth.tokenExpiration`), so the admin login persists across browser restarts.
 
+### Demo accounts
+
+For a public sandbox login, list the account's email in `DEMO_ACCOUNT_EMAILS` ([configuration](configuration.md#public-demo-accounts-optional)). Give it the `editor` role and a single site (for example `demo`): the ordinary role and site predicates above already keep it out of other sites, user management and site secrets. On top of that, `lockDemoAccountSelfChange` (`beforeValidate`) and `blockDemoAccountSelfDelete` (`beforeDelete`) in `src/collections/users.ts` make a request **made by** a listed account fail with `403` and a bilingual (vi / en) message when it changes its own `email`, `password`, `apiKey` or `enableAPIKey`, or deletes itself. Saving the unchanged account form still works. Requests without a user (Local API, `pnpm demo:reset`) and other users (a super-admin) are not blocked. With `DEMO_ACCOUNT_EMAILS` unset nothing changes: ordinary editors can still change their own password. Regression: `src/collections/users-demo-account.integration.test.ts`.
+
 ## Jobs and other privileged operations
 
 | Operation | Rule |

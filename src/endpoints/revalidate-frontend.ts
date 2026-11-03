@@ -10,6 +10,7 @@
 import type { Endpoint } from 'payload'
 
 import { resolveRequestedTenantId, type TenantUser } from '../lib/admin-selected-tenant'
+import { revalidateHeaders } from '../lib/revalidate-headers'
 
 export const revalidateFrontendEndpoint: Endpoint = {
   method: 'post',
@@ -61,7 +62,7 @@ export const revalidateFrontendEndpoint: Endpoint = {
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: revalidateHeaders(),
         body: JSON.stringify({ manual: true }),
         signal: AbortSignal.timeout(8000),
       })
