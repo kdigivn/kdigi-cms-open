@@ -10,7 +10,7 @@ Guidance for AI coding agents (Claude Code, Codex, Cursor, …) working on KDIGI
 
 ```bash
 pnpm dev                    # dev server → http://localhost:3000/admin
-pnpm test                   # node --test + tsx over src/**/*.test.ts (colocated)
+pnpm test                   # node --test + tsx over src/**/*.test.ts and packages/*/src/**/*.test.ts (colocated)
 pnpm lint && pnpm typecheck # REQUIRED before considering work done — see gotcha below
 pnpm test:integration       # real-Postgres tests (*.integration.test.ts); needs DATABASE_URI
 pnpm migrate               # apply DB migrations (= payload migrate; push:false — always explicit)
@@ -19,6 +19,7 @@ pnpm seed:demo             # demo site + sample content (idempotent; needs migra
 pnpm generate:types         # after any schema change → src/payload-types.ts
 pnpm generate:importmap     # after adding admin components
 pnpm test:e2e               # Playwright editor specs (see e2e/README.md)
+pnpm kcms <command>         # run the kcms CLI from source (packages/kcms-cli)
 ```
 
 Run a single test file: `node --import tsx --test src/path/to/file.test.ts`
@@ -41,6 +42,7 @@ Run a single test file: `node --import tsx --test src/path/to/file.test.ts`
 - **SEO subsystem**: `generate-jsonld.ts` writes the authoritative `@graph` to `seo.jsonLd.raw`. SEO titles/descriptions use RankMath-style placeholders resolved at render time by the frontend, not persisted. See [docs/seo.md](docs/seo.md).
 - **Custom endpoints** live in `src/endpoints/` and register in `payload.config.ts` or on collections (comments `/create`, sites `/:siteKey/env-page`, media `/from-url` — SSRF-guarded via `src/lib/ssrf-guard.ts`). Admin endpoints check `req.user`; the few public ones (comments, ratings) are intentionally so. Comment creation is protected by reCAPTCHA (`RECAPTCHA_SECRET`) and field bounding; ratings by a collection whitelist and bounded fields. There is no built-in rate limiting on them — operators add it at the reverse proxy.
 - **Jobs**: revalidate-frontend is a Payload job queued from `afterChange`. The runner is gated by `ENABLE_JOBS_AUTORUN=true` and must run on exactly ONE instance.
+- **AI agent surface**: `src/agent-api/` holds transport-agnostic ops (strict zod schemas in `schemas.ts`); `src/mcp/` registers them as MCP tools; `src/endpoints/mcp.ts` serves `POST /api/mcp` (API-key header auth only, stateless). Ops run on a fresh Local-API request per call (`agentReq`), with `overrideAccess: false` and **`overrideLock: false` on every update** (the Local API default `true` skips the admin edit lock and deletes the editor's lock row), and writes to existing documents go through `withRowLock` (`expectedUpdatedAt`). `src/agent-api/agent-api-guards.test.ts` enforces these. API-key sessions are restricted globally (`src/lib/api-key-session.ts`: no account changes, no permanent deletes). The CLI `packages/kcms-cli` (pnpm workspace, `@kdigi/kcms-cli`) is a thin MCP client; the agent skill lives in `skills/kcms`. See [docs/ai-integration.md](docs/ai-integration.md).
 - **WordPress migration**: generic multi-phase pipeline `src/importers/run-wp-migration.ts` (raw → staged → import, `.gate-lock` co-edit gate); runbook in [docs/wordpress-migration/README.md](docs/wordpress-migration/README.md).
 - **Admin theming**: single re-theme surface `src/app/(payload)/custom.css`; Tailwind/shadcn utilities only inside `.twp` wrappers — never on bare Payload elements (breaks list tables). See [docs/admin-theming.md](docs/admin-theming.md).
 

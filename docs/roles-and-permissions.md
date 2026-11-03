@@ -146,6 +146,16 @@ Sessions: `Users` is configured with a 180-day token expiration (`auth.tokenExpi
 
 For a public sandbox login, list the account's email in `DEMO_ACCOUNT_EMAILS` ([configuration](configuration.md#public-demo-accounts-optional)). Give it the `editor` role and a single site (for example `demo`): the ordinary role and site predicates above already keep it out of other sites, user management and site secrets. On top of that, `lockDemoAccountSelfChange` (`beforeValidate`) and `blockDemoAccountSelfDelete` (`beforeDelete`) in `src/collections/users.ts` make a request **made by** a listed account fail with `403` and a bilingual (vi / en) message when it changes its own `email`, `password`, `apiKey` or `enableAPIKey`, or deletes itself. Saving the unchanged account form still works. Requests without a user (Local API, `pnpm demo:reset`) and other users (a super-admin) are not blocked. With `DEMO_ACCOUNT_EMAILS` unset nothing changes: ordinary editors can still change their own password. Regression: `src/collections/users-demo-account.integration.test.ts`.
 
+### API keys and AI agents
+
+A user API key (`Authorization: users API-Key …`, or `Bearer …` on `/api/mcp`) acts with its owner's role and sites — on REST, GraphQL and the [MCP endpoint](ai-integration.md) alike. Because a key is easier to leak than a browser session, key sessions get extra limits (`src/lib/api-key-session.ts`):
+
+- `lockApiKeySessionAccountChange` (`beforeValidate` on Users) refuses to create users and to change `email`, `password`, `apiKey`, `enableAPIKey`, `role` or `tenants` (`403`, bilingual message).
+- **No permanent deletes:** content collections allow a key only to move documents to the trash (`makeContentDeleteAccess`); media, taxonomies, menus, authors, redirects, folders (`tenantScopedDelete`), comments, users and sites deny `delete` to key sessions entirely.
+- `/api/media/from-url` called with a key runs as the caller with normal collection access and accepts raster images only.
+
+Give each agent its own user with the lowest role that works (an `author` cannot publish; an `editor` can). Avoid super-admin keys: they bypass site isolation, and `/api/mcp` logs a warning on every request made with one.
+
 ## Jobs and other privileged operations
 
 | Operation | Rule |

@@ -156,4 +156,6 @@ Migrated WordPress two-column galleries are preserved. `contentMd` keeps the `di
 4. In hooks and scripts, read `nameMd` and render it yourself; do not rely on `name` outside REST.
 5. If the field is rendered for shortcodes, make sure the document has a `tenant` (site) value, or tags stay as literal text.
 
+AI agents and the `kcms` CLI write the same `contentMd` field through MCP; the rules they are given (allowed Markdown, shortcodes, SEO targets) are in [ai-integration.md](ai-integration.md).
+
 See also: [collections.md](collections.md), [seo.md](seo.md), [admin-theming.md](admin-theming.md).

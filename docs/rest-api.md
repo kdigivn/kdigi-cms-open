@@ -271,6 +271,10 @@ Admins can also trigger the same ping from the editor (`POST /api/revalidate-fro
 
 `GET /api/frontend-doc-url?collection=posts&slug=hello-world&tenantId=1` (logged-in only) returns `{ "url": "https://example.com/hello-world" }` for the editor's "View on site" link. The base URL is `FRONTEND_BASE_URL`, else `https://{Sites.domain}`, else `http://localhost:3002`. Paths are built by `publicPathFor` in `src/lib/frontend-public-path.ts`: `/product/{slug}` for `products`, `/{slug}` for `posts`, `pages` and `landings`. If your frontend uses different routes, change that one function.
 
+## Not part of this contract: `/api/mcp`
+
+`POST /api/mcp` is the Model Context Protocol endpoint for AI agents and the `kcms` CLI. It is an authenticated **write** surface (API key in `Authorization: Bearer …`), not something a public frontend calls, and its tool shapes are documented separately in [ai-integration.md](ai-integration.md).
+
 ## GraphQL
 
 `POST /api/graphql` exposes the same collections and access rules. Production disables the playground (`/api/graphql-playground`) and caps query complexity at 500.

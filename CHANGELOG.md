@@ -4,6 +4,22 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+### Added
+
+- **AI-native: MCP server at `POST /api/mcp`.** 23 tools for AI agents (Claude Code, Codex, Cursor, VS Code, OMP, …) to search, write, schedule, publish, trash/restore, version, audit SEO and manage media and taxonomies, plus the resource `kcms://guide/content` and the prompts `write-post` / `refresh-seo`. Authentication is a user API key in `Authorization: Bearer …`; every call runs as that user with normal access rules, honours admin edit locks and requires `expectedUpdatedAt` for writes to existing documents. Enabled by default; `MCP_ENABLED=false` turns it off. See [docs/ai-integration.md](docs/ai-integration.md).
+- **`kcms` CLI (`@kdigi/kcms-cli`, `packages/kcms-cli`):** Markdown-file round-trip for posts/pages, local image upload, `kcms setup <client>` that writes MCP config without embedding the key, and `kcms mcp` stdio bridge. The repository is now a pnpm workspace.
+- **Agent skill `skills/kcms`** (Agent Skills format) teaching the editorial workflow; installed with `kcms setup … --with-skill`.
+
+### Changed
+
+- **Behaviour change — API-key sessions are restricted on all REST/GraphQL routes:** they can no longer create users or change email, password, API key, API-key switch, role or site membership, and can no longer permanently delete anything (content can still be moved to the trash). Browser sessions are unaffected. See [roles and permissions](docs/roles-and-permissions.md#api-keys-and-ai-agents).
+- **`/api/media/from-url`:** downloads are pinned to the DNS answer that passed the SSRF check (no DNS-rebinding window) and every redirect hop is re-checked. Called with an API key it runs with the caller's access and accepts JPEG/PNG/WebP/GIF/AVIF only (type sniffed from the bytes).
+- Author publish attempts now fail with HTTP `403` instead of a generic `500`.
+
+### Fixed
+
+- Partial updates (REST/GraphQL `PATCH` that omit the field) no longer overwrite a filled `excerpt` with an auto-generated one, nor wipe `seo.breadcrumbs`.
+
 ## [1.1.0] - 2026-11-03
 
 ### Added

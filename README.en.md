@@ -30,6 +30,7 @@ This is a shared sandbox: the demo account cannot change its own email, password
 - **SEO:** JSON-LD `@graph`, RankMath-style title/description templates, SEO audit and scoring, internal-link suggestions, automatic redirects on slug change, optional AI-assisted SEO text.
 - **Editorial tools:** content calendar / editorial dashboard.
 - **Frontend integration:** REST/GraphQL, revalidate webhook (ISR) on content changes, "view on site" links.
+- **AI-native (MCP & CLI):** a built-in MCP server at `/api/mcp` lets Claude Code, Codex, Cursor, VS Code, OMP and other agents write, edit, schedule, publish and SEO-check content with a per-user API key; the `kcms` CLI edits posts as Markdown files and configures clients in one command. See [docs/ai-integration.md](docs/ai-integration.md).
 - **WordPress migration:** multi-phase importer (raw → staged → import) with an approval gate and backups. See the [guide](docs/wordpress-migration/README.md).
 - **Easy to deploy:** `docker compose up` and you are running; Coolify compose file included; a demo site with sample content.
 

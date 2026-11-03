@@ -117,6 +117,7 @@ Rollback of a bad release: redeploy the previous image only if it understands th
 - **One schema at a time:** `push` is disabled; the database only changes through migrations ([upgrading](upgrading.md)).
 - **Multiple sites** need no redeploy: add a site in the admin, then configure that site's frontend and domain ([multi-site](multi-site.md)).
 - **Logs:** application logs go to stdout. Set `OTEL_EXPORTER_OTLP_ENDPOINT` to export traces.
+- **AI agents (`/api/mcp`):** on by default (`MCP_ENABLED=false` disables it; with Coolify add it to the app's environment). Give the route at least 30 s of proxy timeout and add a rate limit for it at the reverse proxy — the CMS has none. See [ai-integration](ai-integration.md#6-operating-it).
 
 ## Troubleshooting
 

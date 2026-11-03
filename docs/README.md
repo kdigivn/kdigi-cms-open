@@ -22,6 +22,7 @@ Reference documentation for KDIGI CMS, an open-source headless multi-site CMS (P
 | [SEO](seo.md) | JSON-LD, title/description placeholders, audit, optional AI generation |
 | [Media and storage](media-storage.md) | local-disk default, per-site Cloudflare R2, image tools |
 | [WordPress migration](wordpress-migration/README.md) | import an existing WordPress site |
+| [AI integration (MCP & CLI)](ai-integration.md) | let Claude Code, Codex, Cursor, VS Code or OMP write and publish content; the `kcms` CLI |
 
 ## Building a frontend / extending
 

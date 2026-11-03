@@ -30,6 +30,7 @@ Mở <https://app.opencms.kdigi.vn/admin> và đăng nhập bằng tài khoản 
 - **SEO:** JSON-LD (`@graph`), mẫu tiêu đề/mô tả kiểu RankMath, chấm điểm & kiểm tra SEO, gợi ý liên kết nội bộ, redirect tự động khi đổi slug, tạo nội dung SEO bằng AI (tùy chọn).
 - **Công cụ biên tập:** lịch nội dung / bảng điều khiển biên tập.
 - **Tích hợp frontend:** REST/GraphQL, webhook revalidate (ISR) khi nội dung đổi, link "xem trên site".
+- **AI-native (MCP & CLI):** máy chủ MCP tích hợp sẵn tại `/api/mcp` cho Claude Code, Codex, Cursor, VS Code, OMP… viết, sửa, hẹn giờ, đăng bài và kiểm tra SEO bằng API key của từng người dùng; CLI `kcms` để làm việc với bài viết dưới dạng file Markdown và cấu hình client chỉ bằng một lệnh. Xem [docs/ai-integration.md](docs/ai-integration.md).
 - **Di chuyển từ WordPress:** pipeline nhập nhiều giai đoạn (thô → chuẩn hóa → nhập) có cổng duyệt và sao lưu. Xem [hướng dẫn](docs/wordpress-migration/README.md).
 - **Triển khai dễ:** `docker compose up` là chạy; có sẵn cấu hình Coolify; site demo kèm nội dung mẫu.
 
