@@ -6,9 +6,11 @@
  *   SEED_DEMO=true docker compose up
  *
  * Creates (all Vietnamese-first with an English translation, Markdown in the `{name}Md` fields):
- *   - site `demo` (domain `localhost`)
+ *   - site `demo` (domain `localhost`) with `pageGroup` FRONT_PAGE → `trang-chu`,
+ *     ABOUT → `gioi-thieu`, CONTACT → `lien-he` (both locales)
  *   - 1 author, 3 categories + 3 tags
- *   - 3 posts (published), 2 pages (published), 1 FAQ group
+ *   - 3 published posts + 1 draft post, 3 published pages (`trang-chu`, `gioi-thieu`, `lien-he`),
+ *     1 FAQ group
  *   - PRIMARY + FOOTER_MENU menus
  *   - 1 generated cover image (also proves media storage works: local disk, or R2 if configured)
  *
@@ -76,7 +78,19 @@ const TAGS = [
   { slug: 'seo', name: { vi: 'SEO', en: 'SEO' } },
 ] as const
 
-const POSTS = [
+interface PostSeed {
+  slug: string
+  category: string
+  type: 'guide' | 'blog' | 'news'
+  /** Defaults to `published`; one seeded draft shows an unpublished post in the admin. */
+  status?: 'published' | 'draft'
+  title: Localized
+  excerpt: Localized
+  content: Localized
+  tags: readonly string[]
+}
+
+const POSTS: PostSeed[] = [
   {
     slug: 'chao-mung-den-voi-kdigi-cms',
     category: 'huong-dan',
@@ -188,9 +202,71 @@ Try filling in *SEO title* and *Description* in the **SEO** tab of this post.
     },
     tags: ['seo', 'noi-dung'],
   },
+  {
+    slug: 'ban-nhap-demo',
+    category: 'tin-tuc',
+    type: 'news',
+    status: 'draft',
+    title: { vi: 'Bản nháp: sắp ra mắt', en: 'Draft: coming soon' },
+    excerpt: {
+      vi: 'Bài viết ở trạng thái nháp — chỉ hiển thị trong admin, không xuất hiện trên website.',
+      en: 'A draft post — visible in the admin only, never on the public site.',
+    },
+    content: {
+      vi: `## Đây là bản nháp
+
+Bài viết này đang ở trạng thái **Bản nháp** nên API công khai không trả về nó.
+
+- Sửa nội dung thoải mái rồi đổi trạng thái sang **Đã đăng**.
+- Đặt *Ngày đăng* trong tương lai để hẹn giờ xuất bản.
+
+Xoá bài này khi bạn đã quen với quy trình duyệt bài.
+`,
+      en: `## This is a draft
+
+This post is in **Draft** status, so the public API never returns it.
+
+- Edit it freely, then switch the status to **Published**.
+- Set a future *Publish date* to schedule it.
+
+Delete this post once you are comfortable with the review flow.
+`,
+    },
+    tags: ['noi-dung'],
+  },
 ]
 
 const PAGES = [
+  {
+    slug: 'trang-chu',
+    title: { vi: 'Trang chủ', en: 'Home' },
+    content: {
+      vi: `# Chào mừng đến với KDIGI CMS
+
+Đây là **trang chủ** của website Demo. Nội dung trang được quản trị viên viết bằng Markdown và đọc qua API công khai, nên frontend của bạn toàn quyền quyết định cách hiển thị.
+
+## Bắt đầu từ đâu?
+
+- **Bài viết** — blog, tin tức và hướng dẫn, lọc theo danh mục hoặc thẻ.
+- **Trang** — nội dung tĩnh như giới thiệu, liên hệ, điều khoản.
+- **Menu** — dựng điều hướng dùng chung cho mọi giao diện.
+
+> Trang này được gắn với key hệ thống \`FRONT_PAGE\` trong phần *Trang & SEO* của site, nên frontend luôn tìm thấy nó dù bạn đổi slug.
+`,
+      en: `# Welcome to KDIGI CMS
+
+This is the **home page** of the Demo website. Admins write page content in Markdown and frontends read it through the public API, so your site decides exactly how it is rendered.
+
+## Where to start
+
+- **Posts** — blog, news and guides, filterable by category or tag.
+- **Pages** — static content such as about, contact and terms.
+- **Menus** — build navigation shared by every frontend.
+
+> This page is mapped to the \`FRONT_PAGE\` system key under the site's *Pages & SEO* tab, so a frontend finds it even after you change the slug.
+`,
+    },
+  },
   {
     slug: 'gioi-thieu',
     title: { vi: 'Giới thiệu', en: 'About' },
@@ -280,6 +356,17 @@ const MENUS: Array<{ location: 'PRIMARY' | 'FOOTER_MENU'; tree: () => MenuNode[]
   },
 ]
 
+/**
+ * System pages a frontend resolves by key (Sites → "Trang & SEO"). `pageSlug` is localized, but
+ * page slugs are not, so both locales point at the same slug. Missing keys are appended; keys a
+ * site already maps are never overwritten.
+ */
+const PAGE_GROUP: Array<{ key: 'FRONT_PAGE' | 'ABOUT' | 'CONTACT'; pageSlug: string }> = [
+  { key: 'FRONT_PAGE', pageSlug: 'trang-chu' },
+  { key: 'ABOUT', pageSlug: 'gioi-thieu' },
+  { key: 'CONTACT', pageSlug: 'lien-he' },
+]
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 async function findOne(
@@ -299,10 +386,64 @@ async function findOne(
   return res.docs[0] as { id: Id } | undefined
 }
 
+async function ensurePageGroup(payload: Payload, siteId: Id): Promise<void> {
+  const viRows =
+    (
+      await payload.findByID({ collection: 'sites', id: siteId, depth: 0, locale: 'vi', overrideAccess: true })
+    ).pageGroup ?? []
+  const missing = PAGE_GROUP.filter((g) => !viRows.some((r) => r.key === g.key))
+  if (missing.length === 0) return // user's mapping — leave it alone
+
+  // Preserve every existing row verbatim and append only the missing keys.
+  const updated =
+    (
+      await payload.update({
+        collection: 'sites',
+        id: siteId,
+        locale: 'vi',
+        data: {
+          pageGroup: [
+            ...viRows.map((r) => ({ id: r.id ?? undefined, key: r.key, pageSlug: r.pageSlug ?? undefined })),
+            ...missing.map((g) => ({ key: g.key, pageSlug: g.pageSlug })),
+          ],
+        },
+        overrideAccess: true,
+      })
+    ).pageGroup ?? []
+
+  // `pageSlug` is localized: fill the English side for the rows we just added, keep existing ones.
+  const enSlugById = new Map(
+    (
+      (
+        await payload.findByID({ collection: 'sites', id: siteId, depth: 0, locale: 'en', overrideAccess: true })
+      ).pageGroup ?? []
+    ).map((r) => [r.id, r.pageSlug] as const),
+  )
+  const knownIds = new Set(viRows.map((r) => r.id))
+  await payload.update({
+    collection: 'sites',
+    id: siteId,
+    locale: 'en',
+    data: {
+      pageGroup: updated.map((r) => ({
+        id: r.id ?? undefined,
+        key: r.key,
+        pageSlug: knownIds.has(r.id)
+          ? (enSlugById.get(r.id) ?? undefined)
+          : PAGE_GROUP.find((g) => g.key === r.key)?.pageSlug,
+      })),
+    },
+    overrideAccess: true,
+  })
+  log(`mapped pageGroup keys: ${missing.map((g) => g.key).join(', ')}`)
+}
+
 async function ensureSite(payload: Payload): Promise<Id> {
   const existing = await findOne(payload, 'sites', { siteKey: { equals: SITE_KEY } })
   if (existing) {
     log(`site "${SITE_KEY}" exists (id ${existing.id})`)
+    // `demo:reset` keeps the Sites row, so an existing site still needs the system-page mapping.
+    await ensurePageGroup(payload, existing.id)
     return existing.id
   }
   const created = await payload.create({
@@ -311,6 +452,7 @@ async function ensureSite(payload: Payload): Promise<Id> {
     overrideAccess: true,
   })
   log(`created site "${SITE_KEY}" (id ${created.id})`)
+  await ensurePageGroup(payload, created.id)
   return created.id
 }
 
@@ -392,7 +534,7 @@ async function ensurePost(
   payload: Payload,
   tenant: Id,
   refs: { author: Id; cover: Id; categories: Map<string, Id>; tags: Map<string, Id> },
-  post: (typeof POSTS)[number],
+  post: PostSeed,
   index: number,
 ): Promise<void> {
   const where: Where = { and: [{ tenant: { equals: tenant } }, { slug: { equals: post.slug } }] }
@@ -400,6 +542,7 @@ async function ensurePost(
   const categories = [post.category, ...post.tags].map((s) =>
     s === post.category ? refs.categories.get(s) : refs.tags.get(s),
   )
+  const status = post.status ?? 'published'
   const publishedAt = new Date(Date.now() - (index + 1) * 24 * 3600 * 1000).toISOString()
   const created = await payload.create({
     collection: 'posts',
@@ -408,8 +551,9 @@ async function ensurePost(
       tenant,
       slug: post.slug,
       type: post.type,
-      status: 'published',
-      publishedAt,
+      status,
+      // Drafts keep publishedAt empty so a later publish stamps the real date.
+      ...(status === 'published' ? { publishedAt } : {}),
       title: post.title.vi,
       excerpt: post.excerpt.vi,
       contentMd: post.content.vi,
