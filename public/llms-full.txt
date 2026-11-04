@@ -1,0 +1,792 @@
+# KDIGI CMS — frontend contract (full)
+
+> Generated from the repository by `pnpm generate:llms`. Sources are separated by `<!-- source: … -->` lines. Index: /llms.txt
+
+<!-- source: https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/SKILL.md -->
+
+# KDIGI CMS frontend (kcms-frontend)
+
+KDIGI CMS is headless: it has no public site. You build one. The site reads the CMS REST API **anonymously**; the CMS calls back a webhook on the site when content changes. Getting the contract wrong leaks drafts, mixes sites, or breaks the editor's "View on site" links — follow these rules exactly.
+
+## 1. Context first
+
+- Read `KCMS.md` in the repo root. It holds this site's CMS URL, `siteKey`, tenant id, locales, menus, page mapping, sample documents and routes.
+- Missing? Ask the user to run `kcms frontend context --url <cms url> --site <siteKey>` (no API key needed). Without the CLI: `GET {CMS}/api/sites?where[siteKey][equals]={siteKey}&limit=1&depth=1` → `docs[0].id` is the tenant id.
+- Contract details: [references/contract.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/contract.md). Full docs: `{CMS}/llms-full.txt`.
+- Put the CMS URL and siteKey in env vars (e.g. `CMS_URL`, `CMS_SITE_KEY`); resolve the tenant id at runtime/build time and cache it, or take it from `KCMS.md` as a fallback.
+
+## 2. Hard rules
+
+1. **Anonymous requests only.** No `Authorization` header, no cookies, no `credentials: 'include'`. Any authenticated read returns drafts and scheduled posts.
+2. **No API key in the site.** Not in code, not in `.env*` the site reads, not in client bundles. The site never needs one.
+3. **Tenant filter on every content query**: `where[tenant][equals]={tenantId}` on `posts`, `pages`, `products`, `landings`, `taxonomies`, `authors`, `menus`, `faqs`, `redirects`, `comments`, `media`. Slugs are unique per site only.
+4. **REST, not GraphQL.** Only REST returns rendered HTML, expanded shortcodes, the menu tree and the OG-image fallback.
+5. **Render HTML fields as HTML** at their original key (`content`, `notice`, landing block `body`, FAQ `answer`). They are already sanitised. Never render `contentMd`/`*Md`, never run a Markdown parser on them.
+6. **Small payloads**: listings `depth=1` + `select[...]=true`; detail pages `depth=2`.
+7. **Landings**: also filter `where[isDisabled][not_equals]=true` (the CMS does not hide disabled landings).
+8. **Locales** `vi` (default) and `en`: `?locale=en` (missing fields fall back to `vi`); `&fallback-locale=none` to detect untranslated. Slugs are shared across locales. Set `<html lang>`.
+9. **SEO** from `seo.*`: empty `seo.title`/`seo.description` is normal — resolve with `Sites.seoTitles` templates, then title/excerpt. Inject `seo.jsonLd.raw` **verbatim** (it is already a full `<script type="application/ld+json">` element; do not wrap or re-serialise). Canonical, robots, OG and Twitter tags from `seo`.
+10. **Menus** by `location` (`PRIMARY`, `FOOTER_MENU`, …) from `items[]`; children in `children`.
+11. **System pages** (home, about, contact, blog, …): `GET /api/sites/{siteKey}/env-page?key=FRONT_PAGE` — the site's `pageGroup` maps keys to pages. `null` → fallback/404.
+12. **Redirects** from `redirects` (`isEnabled=true`) in middleware/edge before 404; normalise trailing slashes, cap hops.
+13. **Comments** via `POST /api/comments/create` (created `pending`), **ratings** via `POST /api/ratings/submit`; both take `tenantSiteKey`. Never `POST /api/comments`.
+14. **Never call** `/api/mcp`, `/api/<collection>/versions`, `/api/users`, or send `trash=true`.
+15. Missing document → real **404** status, not an empty 200.
+16. Only `example.com`-style placeholders in committed examples; no real keys or private URLs.
+
+## 3. Routes (recommended)
+
+Match the CMS's `publicPathFor`, which builds "View on site", internal-link suggestions, the editor's `@` link picker, breadcrumbs and JSON-LD URLs:
+
+- `/{slug}` — one catch-all that resolves **landing → page → post** (first published match wins, else 404);
+- `/product/{slug}` — products;
+- `/` — the `FRONT_PAGE` system page (plus featured posts/products from the site doc if the design wants them);
+- optional, your choice: `/category/{slug}`, `/tag/{slug}`, `/author/{slug}`, `/search`, an `/en` prefix for English.
+
+Serve both `/slug` and `/slug/`. Different routes are allowed only if you tell the user to change `publicPathFor` in `src/lib/frontend-public-path.ts` on the CMS (and `src/fields/slug-url-prefix-map.ts`); otherwise CMS-generated links break.
+
+## 4. Revalidate webhook (required for cached/static sites)
+
+Expose `POST /api/cms/revalidate` on the site. Body `{ "collection", "id", "slug" }` or `{ "manual": true }`.
+
+- Map `collection` + `slug` to the path (`posts`/`pages`/`landings` → `/{slug}`, `products` → `/product/{slug}`) and refresh it plus home/listings. `menus`, `faqs`, `shortcodes`, `authors`, site settings, `manual` or anything unknown → refresh the whole site.
+- Return 2xx in under 5 s; idempotent; do not fetch the CMS inside the handler. It is unauthenticated: never trust the body beyond choosing what to purge; rate-limit at the edge if needed.
+- The CMS calls `https://{Sites.domain}/api/cms/revalidate`; tell the user the site's `domain` must match and `ENABLE_JOBS_AUTORUN=true` must be set on one CMS instance.
+
+## 5. Dev-time CMS access (optional)
+
+If the `kdigi` MCP tools or the `kcms` CLI are available, you may use them **while developing** to explore content: `whoami`, `get_site`, `search_content`, `get_content`, `list_taxonomies`. You may create **drafts** as fixtures. Never publish (`set_status` published), never trash, never edit documents you did not create. Drafts are invisible to the anonymous site — to see a fixture on the site, ask the user to publish it. Never copy the API key into the site.
+
+## 6. Framework
+
+Detect it from `package.json` (or the user's request) and read the matching reference:
+
+| Framework | Reference |
+| --- | --- |
+| Next.js (App Router) | [references/nextjs.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/nextjs.md) |
+| Astro | [references/astro.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/astro.md) |
+| SvelteKit | [references/sveltekit.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/sveltekit.md) |
+| Nuxt | [references/nuxt.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/nuxt.md) |
+| React (Vite) / Angular / other SPA | [references/spa.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/spa.md) |
+
+Anything else: apply [references/contract.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/contract.md) directly with the same structure (fetch helper → site/menu loaders → catch-all → SEO → webhook).
+
+## 7. Finish
+
+Run through [references/checklist.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/checklist.md) and report the result, the routes you chose, and what the user must configure on the CMS (domain, `publicPathFor` if routes differ, jobs).
+
+---
+
+<!-- source: https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/references/contract.md -->
+
+# KDIGI CMS frontend contract (digest)
+
+Everything a public website needs from the CMS REST API. Full detail: `{CMS}/llms-full.txt` (served by the CMS you are using, so it matches its version), or `docs/rest-api.md` and `docs/seo.md` in https://github.com/kdigivn/kdigi-cms-open as a fallback.
+
+Placeholders: `{CMS}` = CMS base URL (e.g. `https://cms.example.com`), `{SITE}` = siteKey, `{TENANT}` = numeric site id. `KCMS.md` gives you the real values.
+
+## 1. Request rules
+
+- **Anonymous only.** No `Authorization` header, no cookies, no `credentials: 'include'`. An authenticated read returns drafts and scheduled content.
+- **REST, not GraphQL.** HTML rendering, shortcode expansion, the menu projection and the OG-image fallback only run on REST.
+- **Always** `where[tenant][equals]={TENANT}`: anonymous reads return every site's public content otherwise.
+- Query syntax is Payload's: `where[field][op]=value` (`equals`, `not_equals`, `in`, `like`, `exists`, `less_than_equal`, …), `limit`, `page`, `sort` (`-field` = descending), `depth`, `select[field]=true`, `locale`, `fallback-locale`.
+- Build query strings with `URLSearchParams` (bracket keys are fine); never string-concatenate user input.
+- Lists return `{ docs, totalDocs, limit, page, totalPages, hasNextPage, hasPrevPage, nextPage, prevPage, pagingCounter }`.
+
+## 2. Recipes
+
+```text
+# site (once, cache it): id, domain, defaultLanguage, pageGroup, seoTitles, branding, …
+GET {CMS}/api/sites?where[siteKey][equals]={SITE}&limit=1&depth=1
+
+# post listing (cards)
+GET {CMS}/api/posts?where[tenant][equals]={TENANT}&sort=-publishedAt&limit=12&page=1&depth=1
+    &select[title]=true&select[slug]=true&select[excerpt]=true&select[featuredImage]=true&select[publishedAt]=true&select[categories]=true
+
+# one document by slug (slug is unique per site only → keep the tenant filter)
+GET {CMS}/api/posts?where[tenant][equals]={TENANT}&where[slug][equals]={slug}&limit=1&depth=2
+# same for pages, products; landings add: &where[isDisabled][not_equals]=true
+
+# taxonomy archive
+GET {CMS}/api/taxonomies?where[tenant][equals]={TENANT}&where[type][equals]=category&where[slug][equals]={slug}&limit=1
+GET {CMS}/api/posts?where[tenant][equals]={TENANT}&where[categories][in]={taxonomyId}&sort=-publishedAt&depth=1
+
+# author page
+GET {CMS}/api/authors?where[tenant][equals]={TENANT}&where[slug][equals]={slug}&limit=1
+GET {CMS}/api/posts?where[tenant][equals]={TENANT}&where[author][equals]={authorId}&sort=-publishedAt&depth=1
+
+# search (title contains, case-insensitive)
+GET {CMS}/api/posts?where[tenant][equals]={TENANT}&where[title][like]={q}&limit=10&depth=1
+
+# menu for one location
+GET {CMS}/api/menus?where[tenant][equals]={TENANT}&where[location][equals]=PRIMARY&limit=1&locale={locale}
+
+# system page (home, about, contact, …) mapped in Sites.pageGroup
+GET {CMS}/api/sites/{SITE}/env-page?key=FRONT_PAGE&locale={locale}
+
+# redirects (all enabled rules for the site)
+GET {CMS}/api/redirects?where[tenant][equals]={TENANT}&where[isEnabled][equals]=true&limit=1000&depth=0
+
+# FAQ groups
+GET {CMS}/api/faqs?where[tenant][equals]={TENANT}&where[group][equals]={group}&limit=1
+
+# approved comments of a post
+GET {CMS}/api/comments?where[tenant][equals]={TENANT}&where[post][equals]={postId}&sort=createdAt
+```
+
+Anonymous visibility: `pages`, `posts`, `products`, `landings` → only `status=published`, `publishedAt` empty or past, not trashed (scheduled posts appear by themselves when the time passes — do not cache "not found" forever). `landings.isDisabled` is **not** enforced by the CMS: filter it yourself. `taxonomies`, `authors`, `menus`, `faqs`, `shortcodes`, `media`, `sites` → all documents. `redirects` → all, including disabled: filter `isEnabled`. `comments` → approved only. Never send `trash=true`; never call `/api/<collection>/versions` (403 anonymously).
+
+## 3. Collections and fields you render
+
+| Collection | Key fields |
+| --- | --- |
+| `posts` | `id`, `title`, `slug`, `type` (`blog`/`news`/`guide`), `excerpt`, `content` (HTML), `featuredImage` (media), `categories[]` (taxonomies), `author` (authors), `publishedAt`, `modified`, `commentCount`, `kkStarRating {avg,count}`, `seo` |
+| `pages` | `title`, `slug`, `pageType` (`default`/`blog`/`landing`), `featuredImage`, `content` (HTML), `seo` |
+| `products` | `title`, `slug`, `excerpt`, `content` (HTML), `notice` (HTML), `featuredImage`, `hero.slider[].image`, `hero.slideVideo`, `prices[]`, `categories[]`, `author`, `commentCount`, `kkStarRating`, `seo` |
+| `landings` | `title`, `slug`, `excerpt`, `featuredImage`, `template` (`default`/`wide`/`fullscreen`), `layout[]` blocks by `blockType`: `hero` (`title`, `subtitle`, `backgroundImage`, `ctaText`, `ctaUrl`), `content` (`body` = HTML), `imageGallery` (`images[].image`), `testimonials` (`items[]`), `cta`, `faq` (`items[] { question, answer }`), `stats`, `pricingTable`, `blogFeed` (`category`, `limit`), `offerCards`, `embed` (`code` = raw HTML/iframe from editors), `divider`; `seo`. Render unknown block types as nothing |
+| `taxonomies` | `name`, `slug`, `type` (`category`/`product-category`/`tag`/`custom`), `description` (plain text), `content` (HTML), `parent`, `seo` |
+| `authors` | `name`, `slug`, `avatar`, `bio`, `sameAs[].url` (never `email`) |
+| `faqs` | `group`, `items[] { question, answer (HTML) }` |
+| `media` | `url` (absolute), `alt`, `width`, `height`, `mimeType`, `filename` |
+
+HTML fields (`content`, `notice`, landing `body`, FAQ `answer`) are rendered from Markdown by the CMS, sanitised, shortcodes expanded, `<img>` with `width`/`height`. **Insert them as HTML** (`dangerouslySetInnerHTML`, `set:html`, `{@html}`, `v-html`, `[innerHTML]`). Do not render `contentMd`/`noticeMd`/`bodyMd`, do not run a Markdown parser, do not re-sanitise into plain text. `null` means empty.
+
+`depth`: `0` ids only, `1` populates media/taxonomies/author (enough for listings), REST default `2`. With `depth=0` a relationship is a number — type it as `number | Doc`.
+
+## 4. Locales
+
+Locales `vi` (default) and `en`. `Sites.defaultLanguage` says which one the site leads with.
+
+| Query | Result |
+| --- | --- |
+| none | `vi` |
+| `locale=en` | `en`, missing fields fall back to `vi` |
+| `locale=en&fallback-locale=none` | `en` only, missing fields empty (use to detect "not translated") |
+
+`slug` is **not** localized: the same slug serves both languages. Typical routing: default language at `/`, the other under a prefix (`/en/{slug}`). Set `<html lang>` to the page locale. Menu labels and `pageGroup` follow `locale` too.
+
+## 5. SEO
+
+Every `pages`/`posts`/`products`/`landings`/`taxonomies` doc has `seo`:
+
+- `seo.title`, `seo.description` are **often empty by design** — resolve at render time:
+  - `title = seo.title || template(Sites.seoTitles.<group>.titleTemplate) || doc.title`
+  - `description = seo.description || template(descriptionTemplate) || excerpt`
+  - groups: `homepage`, `posts`, `pages`, `products`, `landings`, `taxonomies`; separator `Sites.seoTitles.separator` (default `|`).
+  - variables: `%title%`, `%sitename%` (`knowledgeGraph.name` → `manifest.name` → `domain`), `%sep%`, `%excerpt%` (HTML stripped), `%category%`, `%focuskw%`, `%date%`, `%modified%`, `%term%`, `%currentyear%`, `%price%`; unknown/empty variables vanish and leftover doubled separators are collapsed. Empty template → defaults `%title% %sep% %sitename%` (`homepage`: `%sitename%`; `taxonomies`: `%term% %sep% %sitename%`), description `%excerpt%`.
+- Open Graph: `og:title = seo.openGraph.title || title`, `og:description = seo.openGraph.description || description`, `og:image = seo.openGraph.image.url` (REST already falls back to featured image → site default). Twitter: `seo.openGraph.twitterMeta.{useFacebookData,card,title,description,image}`; when `useFacebookData` is true (default) reuse the OG values for empty Twitter fields.
+- `seo.robots[]` (e.g. `['index','follow']`, or `['noindex','follow']`) → `<meta name="robots" content="…">` joined with `,`; empty → omit the tag. `seo.canonicalOverride` is an absolute URL → canonical; empty → your own absolute URL for the page.
+- `seo.breadcrumbs[] { url, text, isHidden }` — skip `isHidden`.
+- `seo.jsonLd.raw` is a **complete** `<script type="application/ld+json">…</script>` element. Inject it verbatim into `<head>` (or body). Do not wrap it in another `<script>`, do not `JSON.parse`/re-serialise it. Empty until the doc was saved once.
+- If `seo.openGraph.image` is still empty (e.g. a page from `env-page`), fall back to `featuredImage`, then `Sites.seoDefaults.ogImage`.
+
+## 6. Site settings (`sites` doc)
+
+Read once per request/build and cache: `id`, `siteKey`, `domain`, `defaultLanguage`, `branding { primaryColor, fontFamily, logo, favicon, notFoundImage }`, `landing { heroTitle, heroNotice1/2, slider[] }`, `featuredPosts`, `featuredProducts`, `homePageHighlight[]`, `contact { rightSide[], headerIcons[] }`, `footer { address[], subfooter, ecosystemLinks[], partners[] }`, `pageGroup[] { key, pageSlug }`, `seoDefaults.ogImage`, `seoTitles`, `knowledgeGraph`, `socialProfiles[]`, `integration { ga4Id, gtmId, clarityId }`, `manifest`. Secrets are never returned.
+
+`pageGroup` keys: `FRONT_PAGE`, `BLOG`, `PROFILE`, `CONTACT`, `ABOUT`, `SEARCH`, `SIGN_IN`, `SIGN_UP`, `FORGOT_PASSWORD`, `CONFIRM_EMAIL`, `PASSWORD_CHANGE`, `TERM_CONDITION`, `PRIVACY_POLICY`. `env-page` returns the mapped published `pages` document itself (no `docs` wrapper) with `content` as HTML, or `null` (unknown key / unpublished) → 404 or fallback UI.
+
+## 7. Menus
+
+One `menus` doc per `location`: `PRIMARY`, `SECONDARY_MENU`, `MOBILE_MENU`, `FOOTER_MENU`, `LOGGEDIN_ACCOUNT_MENU`. REST returns `items[]` (never `tree`):
+
+```json
+{ "id": "…", "label": "Services", "url": "/services", "path": "/services", "uri": "/services",
+  "order": 0, "parentId": null, "children": [ /* same shape, nested up to 10 levels */ ],
+  "childItems": { "nodes": [ /* same array as children */ ] } }
+```
+
+`url` may be relative (internal) or absolute (external, open normally). Labels follow `locale`. A missing location → no menu doc → render nothing.
+
+## 8. Routes
+
+`publicPathFor` in the CMS (`src/lib/frontend-public-path.ts`) decides the links the CMS generates ("View on site", internal-link suggester, `@` link picker in the editor, breadcrumbs, JSON-LD URLs, auto-redirects):
+
+| Collection | Public path |
+| --- | --- |
+| `posts`, `pages`, `landings` | `/{slug}` |
+| `products` | `/product/{slug}` |
+
+Recommended: one catch-all route `/{slug}` that tries **landing → page → post** (first published match wins, else 404) and `/product/{slug}`. Taxonomy archives (`/category/{slug}`, `/tag/{slug}`) are not generated by the CMS — pick any path. Editors write internal links in content as `/slug`. If you choose different routes, tell the user to change `publicPathFor` on the CMS (and `src/fields/slug-url-prefix-map.ts`), otherwise CMS-generated links break.
+
+Trailing slash: CMS-generated URLs in breadcrumbs/JSON-LD and auto-redirect `from` paths end with `/`; serve both `/slug` and `/slug/` (normalise one to the other).
+
+## 9. Redirects
+
+Rules: `from` (path starting `/`, auto-created ones end with `/`), `to` (internal path), `statusCode` (`'301'`/`'302'` as string), `isEnabled`. Apply them in middleware/edge before rendering 404: normalise trailing slash on both sides, cap hops (e.g. 5) to break chains/loops, cache the list and refresh it on the webhook.
+
+## 10. Media
+
+`media.url` is absolute and ready to use: CMS-served `{CMS}/api/media/file/…` (local disk) or the site's R2/CDN public URL. `?v=<n>` cache-busters may be appended — keep them. Allow the CMS host and any R2/CDN host in your image optimiser config (e.g. Next `images.remotePatterns`). Use `alt`, `width`, `height`.
+
+## 11. Public write endpoints
+
+```text
+POST {CMS}/api/comments/create      (never POST /api/comments)
+{ "postId": "42" | "productId": "7", "authorName": "Ada", "authorEmail": "ada@example.com",
+  "content": "…", "tenantSiteKey": "{SITE}", "recaptchaToken": "<optional>" }
+→ 201 { success: true, comment: { id, status: "pending" } }   400 | 403 tenant mismatch | 404
+
+POST {CMS}/api/ratings/submit
+{ "collection": "posts" | "products", "id": "42", "rating": 1-5, "tenantSiteKey": "{SITE}" }
+header X-Client-IP: <browser IP> when called from your server
+→ 201 { success: true, kkStarRating: { avg, count } } (new vote) | 200 (already voted)
+```
+
+New comments are `pending` until a moderator approves them: show "awaiting moderation", not the comment.
+
+## 12. Revalidate webhook (the frontend exposes it)
+
+```text
+POST https://{Sites.domain}/api/cms/revalidate
+Content-Type: application/json
+{ "collection": "posts", "id": "42", "slug": "hello-world" }     # or { "manual": true }
+```
+
+- Sent after saves/deletes of `pages`, `posts`, `products`, `landings`, `taxonomies`, `faqs`, `shortcodes`, `menus`, `authors`, site settings, and comment approval. A slug rename sends a second call for the old slug.
+- `menus`, `faqs`, `shortcodes`, `authors`, site settings, `manual: true`, a missing `slug`, or anything you cannot map → revalidate the whole site. Otherwise revalidate `publicPathFor(collection, slug)` plus listings/home.
+- Respond 2xx within 5 s (non-2xx is retried 3×). Idempotent, cheap, no CMS fetch inside the handler. Unauthenticated: rate-limit at the edge if needed.
+- The CMS only calls `https://{domain}`; a site with no `domain` gets no calls. Production needs `ENABLE_JOBS_AUTORUN=true` on one CMS instance.
+
+## 13. Never
+
+- `/api/mcp`, API keys, `users` endpoints, `/versions`, `trash=true`, GraphQL for rendered pages, `contentMd` rendering.
+
+---
+
+<!-- source: https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/rest-api.md -->
+
+# REST API
+
+The public API contract for frontends: how to read content for one site over REST (and GraphQL), what shape it comes back in, and which write-style endpoints a public website may call.
+
+KDIGI CMS is built on Payload, so the generic Payload REST conventions apply (`where`, `limit`, `page`, `sort`, `depth`, `select`, `locale`). This page documents what is specific to this project. Implementation lives in `src/collections/*`, `src/access/*`, `src/fields/markdown-html-field.ts` and `src/endpoints/*`; the architecture is in [architecture.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/architecture.md).
+
+All examples use `https://cms.example.com` for the CMS and `example-site` for a site key.
+
+Building the site with an AI coding agent: see [frontend-with-ai.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/frontend-with-ai.md). The same contract is served as plain text for agents at `/llms.txt` and `/llms-full.txt` on every CMS host.
+
+## Ground rules
+
+- **Read anonymously.** Frontends must call the API with **no cookie and no `Authorization` header**. Anonymous reads are filtered to public content. An authenticated request (admin session, or a user API key — `users` has `useAPIKey: true`) switches to tenant-scoped access, which returns **drafts and scheduled content** for the sites that user belongs to.
+- **REST is the contract.** Markdown→HTML conversion, shortcode expansion, the menu tree projection and the OG-image fallback only run for REST requests. GraphQL and the Local API return the raw stored shape ([GraphQL](#graphql)).
+- **Filter by site yourself.** Public read predicates do not restrict by site; one CMS serves many sites ([multi-site.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/multi-site.md)). Always add a `tenant` filter.
+- Responses are Payload's standard paginated list: `docs`, `totalDocs`, `limit`, `page`, `totalPages`, `hasNextPage`, `hasPrevPage`, `nextPage`, `prevPage`, `pagingCounter`.
+
+## Selecting a site
+
+Each site is a `sites` document with a unique `siteKey` and a `domain`. The content collections reference it through a relationship field named `tenant` (the Sites collection is the tenant boundary), whose value is the site's numeric `id`.
+
+1. Resolve the site once and cache it:
+
+```bash
+curl -s 'https://cms.example.com/api/sites?where[siteKey][equals]=example-site&depth=1&limit=1'
+```
+
+2. Filter every content query by that `id`:
+
+```bash
+curl -s 'https://cms.example.com/api/posts?where[tenant][equals]=1&sort=-publishedAt&limit=10&depth=1'
+```
+
+`sites` is publicly readable; secret leaf fields (`r2.accessKeyId`, `r2.secretAccessKey`) have `access.read: false` and never appear in REST or GraphQL. Public settings such as branding, contact, footer, `seoDefaults`, `knowledgeGraph`, `seoTitles`, `breadcrumbs`, `pageGroup` and `defaultLanguage` are readable — see [collections.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/collections.md) for the field list.
+
+## What anonymous callers can read
+
+| Collection | Anonymous read | Notes |
+| --- | --- | --- |
+| `pages`, `posts`, `products`, `landings` | `status = published`, `publishedAt` empty or `<= now`, **not trashed** | Scheduled posts go live automatically when `publishedAt` passes. `?trash=true` does not widen the result: `deletedAt` is part of the access predicate (`src/access/published-and-live.ts`). Do not send `trash` |
+| `taxonomies` | all documents | No status/trash. Filter by `type` (`category`, `product-category`, `tag`, `custom`) |
+| `authors` | all documents | `email` is never returned |
+| `menus` | all documents | Shape is projected, see [Menus](#menus) |
+| `faqs`, `shortcodes` | all non-trashed documents | |
+| `redirects` | all documents (including disabled) | Filter `where[isEnabled][equals]=true` |
+| `comments` | `status = approved` only | Create through [`/api/comments/create`](#comments) |
+| `media` | all documents | |
+| `sites` | all documents | Secrets hidden, see above |
+| `rating-events`, `users` | none | |
+
+Version history (`/api/<collection>/versions`) requires login and is tenant-scoped; anonymous callers get **403**. Frontends must not call it — snapshots contain internal SEO fields.
+
+## Querying
+
+```bash
+# list, newest first, one site
+curl -s 'https://cms.example.com/api/posts?where[tenant][equals]=1&sort=-publishedAt&limit=12&page=1&depth=1'
+
+# one document by slug (slug is unique per site, not globally)
+curl -s 'https://cms.example.com/api/pages?where[tenant][equals]=1&where[slug][equals]=about&limit=1&depth=2'
+
+# only some fields
+curl -s 'https://cms.example.com/api/posts?where[tenant][equals]=1&select[title]=true&select[slug]=true&select[publishedAt]=true'
+```
+
+```ts
+// Node / edge fetch
+const res = await fetch(
+  'https://cms.example.com/api/posts?' +
+    new URLSearchParams({
+      'where[tenant][equals]': '1',
+      'where[slug][equals]': 'hello-world',
+      limit: '1',
+      depth: '2',
+      locale: 'en',
+    }),
+)
+const { docs } = await res.json()
+const post = docs[0]
+```
+
+Slugs are unique per site among non-trashed documents (partial unique index on `deletedAt IS NULL`), so always combine a `slug` filter with the `tenant` filter.
+
+### `depth`
+
+`depth` controls how far relationships are populated (`featuredImage`, `categories`, `author`, `seo.openGraph.image`, …). `depth=0` returns bare ids; `depth=1` populates one level (enough for media and taxonomies); Payload's REST default is 2. For listings use `depth=1` or `select` to keep payloads small. The OG-image fallback needs no extra depth: it resolves ids itself.
+
+### Locale and fallback
+
+Content locales are `vi` (default) and `en`, with fallback enabled in `payload.config.ts`.
+
+| Query | Result |
+| --- | --- |
+| *(none)* | `vi` |
+| `locale=en` | `en`; a field with no `en` value falls back to `vi` |
+| `locale=en&fallback-locale=none` | `en` only; missing values come back empty |
+| `locale=all` | every locale as `{ vi, en }` objects |
+
+Menu item labels also follow `locale`; see [Menus](#menus).
+
+## Content shape: Markdown → HTML
+
+Editors write Markdown in the Milkdown editor ([content-markdown.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/content-markdown.md)). The API gives frontends ready-to-render HTML **at the original field key**:
+
+| Collection | Source field (Markdown) | Field you read (HTML) |
+| --- | --- | --- |
+| `posts`, `pages`, `products`, `taxonomies`, `shortcodes` | `contentMd` | `content` |
+| `products` | `noticeMd` | `notice` |
+| `landings` (blocks of `blockType: 'content'` in `layout[]`) | `bodyMd` | `body` |
+| `faqs` (`items[].answer`) | the stored answer (Markdown) | the same key, rendered to HTML on REST |
+
+Rules (`src/fields/markdown-html-field.ts`):
+
+1. If `*Md` has text, it wins: shortcodes are expanded, the Markdown is rendered to sanitised HTML, and `<img>` tags get `width`/`height` from the site's media records when known.
+2. If `*Md` is the empty string, the field is `null` — the legacy rich-text value is **not** resurrected.
+3. If `*Md` is `null`/absent (document never saved since the Markdown migration), the legacy Lexical value is converted to HTML.
+4. The `*Md` source field is also present in the response; do not render it directly.
+
+`taxonomies.description` is plain text. Long descriptions with headings or images belong in `contentMd`/`content`.
+
+### Shortcodes
+
+A shortcode is a reusable Markdown snippet in the `shortcodes` collection, referenced from Markdown as `[sc name="my-snippet"/]` (or `[sc name="my-snippet"][/sc]`). Expansion happens on the REST read, before Markdown rendering:
+
+- Looked up by `name` **within the document's own site**, in the request locale.
+- Nested expansion up to **3 levels**. A name that is not found, loops back on itself or exceeds the depth is replaced by nothing.
+- If the document has no site or the tag does not match the syntax, the text is left as is.
+
+## SEO fields
+
+Every `pages`, `posts`, `products`, `landings` and `taxonomies` document carries a `seo` group. The shape is a stable contract; details and semantics are in [seo.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/seo.md).
+
+| Path | Notes |
+| --- | --- |
+| `seo.title`, `seo.description` | Often **empty by design**: the CMS stores what the editor typed and the frontend fills the rest from the site's templates (`Sites.seoTitles`) at render time |
+| `seo.focusKeywords[]`, `seo.robots[]`, `seo.canonicalOverride`, `seo.breadcrumbTitle` | |
+| `seo.breadcrumbs[]` | `{ url, text, isHidden }`; auto-generated on save when empty. Skip entries with `isHidden: true` |
+| `seo.openGraph.{title,description,image,imageAlt,siteName,url,type,locale}` | `image` is filled at read time: own OG image → `featuredImage` → `Sites.seoDefaults.ogImage` |
+| `seo.openGraph.twitterMeta.{useFacebookData,card,title,description,image}` | Nested inside `openGraph` |
+| `seo.articleMeta.{publishedTime,modifiedTime}`, `seo.updatedTime` | |
+| `seo.jsonLd.raw` | A complete `<script type="application/ld+json">…</script>` element containing one schema.org `@graph`, to be injected verbatim |
+
+```tsx
+const jsonLd = post.seo?.jsonLd?.raw // already includes the <script> tag
+// <div dangerouslySetInnerHTML={{ __html: jsonLd ?? '' }} />  (or inject into <head> as-is)
+```
+
+Inside the element every `<` of the JSON payload is escaped as `\u003c`, so a `</script>` inside a title cannot break out of the tag. The value is empty until the document has been saved at least once with a resolvable site.
+
+## Menus
+
+`menus` documents are one per `location` per site. Locations: `PRIMARY`, `SECONDARY_MENU`, `MOBILE_MENU`, `FOOTER_MENU`, `LOGGEDIN_ACCOUNT_MENU`.
+
+```bash
+curl -s 'https://cms.example.com/api/menus?where[tenant][equals]=1&where[location][equals]=PRIMARY&locale=vi&limit=1'
+```
+
+Storage is a canonical `tree` field, but REST **never returns `tree`**: it returns `items`, projected from the tree for the requested locale (`src/lib/menu-tree-to-rest.ts`). Each item:
+
+```json
+{
+  "id": "6f1c…",
+  "label": "Services",
+  "url": "/services",
+  "path": "/services",
+  "uri": "/services",
+  "order": 0,
+  "parentId": null,
+  "children": [ { "id": "…", "label": "Web design", "url": "/services/web", "path": "/services/web", "uri": "/services/web", "order": 0, "parentId": "6f1c…", "children": [], "childItems": { "nodes": [] } } ],
+  "childItems": { "nodes": [ /* same objects as children */ ] }
+}
+```
+
+- `url`, `path` and `uri` carry the same value; `children` and `childItems.nodes` carry the same array. Read whichever suits your frontend.
+- `label`: requested locale → the other locale → the node id (never empty).
+- Nesting is capped at 10 levels. An empty or corrupt tree yields the legacy stored `items` (usually `[]`) instead of an error.
+
+## Comments
+
+Reading: `GET /api/comments?where[tenant][equals]=1&where[post][equals]=42&sort=createdAt` returns approved comments only; `authorEmail` is never returned. Posts and products expose `commentCount` (approved comments, maintained by the CMS).
+
+Creating — do **not** `POST /api/comments`; use the dedicated public endpoint:
+
+```bash
+curl -s -X POST 'https://cms.example.com/api/comments/create' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "postId": "42",
+    "authorName": "Ada",
+    "authorEmail": "ada@example.com",
+    "content": "Great article!",
+    "tenantSiteKey": "example-site",
+    "recaptchaToken": "<token from your frontend>"
+  }'
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `postId` **or** `productId` | exactly one | Document id as a string |
+| `authorName` | yes | Truncated to 100 characters |
+| `content` | yes | HTML-sanitised before storage |
+| `tenantSiteKey` | yes | Must equal the parent document's site `siteKey`, otherwise **403** `Tenant mismatch` |
+| `authorEmail` | no | Truncated to 200 characters; stored, never exposed |
+| `recaptchaToken` | no | See below |
+
+Response `201`: `{ "success": true, "comment": { "id": …, "status": "pending" } }`. Errors: `400` (bad/missing fields or invalid JSON), `403` (site mismatch), `404` (parent not found), `500` (create failed).
+
+Comments are always created `pending` and appear on the API only after a moderator approves them. If `RECAPTCHA_SECRET` is set and a token is sent, the endpoint verifies it with Google (5 s timeout) and **logs** a failing verdict; it never blocks the request. A missing token, a failed verification or a network error only produces a warning. There is no per-IP rate limit on this endpoint, so moderation is the spam control. Setting `MODERATION_WEBHOOK_URL` makes the CMS POST `{ "text": "…" }` to that URL for each new pending comment.
+
+## Ratings
+
+```bash
+curl -s -X POST 'https://cms.example.com/api/ratings/submit' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Client-IP: 203.0.113.7' \
+  -d '{ "collection": "posts", "id": "42", "rating": 5, "tenantSiteKey": "example-site" }'
+```
+
+| Field | Rules |
+| --- | --- |
+| `collection` | `posts` or `products` |
+| `id` | Document id as an integer-valued string |
+| `rating` | Integer 1–5 |
+| `tenantSiteKey` | Must match the document's site, else **403** |
+
+Responses: `201 { "success": true, "kkStarRating": { "avg": 4.5, "count": 12 } }` for a new vote, `200` with the unchanged aggregate when this client already voted. The aggregate is also readable on the document as `kkStarRating` (`avg`, `count`, `ratings`).
+
+Deduplication stores only a SHA-256 hash of the client IP in `rating-events`. The IP is taken from `X-Client-IP` (set it from your frontend server so the real browser IP is used), then the **rightmost** `X-Forwarded-For` entry, then `X-Real-IP`. With no resolvable IP, dedup is skipped. No reCAPTCHA is used. Votes do not trigger a frontend revalidate.
+
+## Redirects
+
+```bash
+curl -s 'https://cms.example.com/api/redirects?where[tenant][equals]=1&where[isEnabled][equals]=true&limit=1000&depth=0'
+```
+
+Fields: `from` (path with leading `/`), `to` (internal path; external URLs are rejected on save), `statusCode` (`'301'` or `'302'`, a string), `isEnabled`. The CMS creates a 301 automatically when a document slug changes (`from` = old public path with trailing slash, `to` = new one). Apply the list in your frontend middleware and cap the number of hops — the CMS only warns about chains.
+
+## Media
+
+`GET /api/media?where[tenant][equals]=1` returns `url`, `alt`, `width`, `height`, `mimeType`, `filesize`, `filename`. Behaviour of `url`:
+
+- When `externalUrl` is set, `url` is replaced by it.
+- After an image edit (`version > 1`) the URL gets `?v=<version>` so CDNs refetch.
+- Local-disk storage (the default for a site without R2 settings): `url` is absolute, `{PAYLOAD_PUBLIC_SERVER_URL}/api/media/file/<filename>` (plus `?t=<site>` for site-scoped files), served by the CMS itself.
+- R2 storage (site has `Sites.r2` settings): `url` is `{Sites.r2.publicBaseUrl}/media/<siteId>/…` when a public base URL is configured.
+
+Details and the cache-bust interaction are in [media-storage.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/media-storage.md). The cloud-storage plugin may add a nullable `_objectKey` field to media documents.
+
+## Page by system key
+
+`GET /api/sites/:siteKey/env-page?key=FRONT_PAGE` returns the `pages` document that the site's `pageGroup` maps to that key (`FRONT_PAGE`, `BLOG`, `PROFILE`, `CONTACT`, `ABOUT`, `SEARCH`, `SIGN_IN`, `SIGN_UP`, `FORGOT_PASSWORD`, `CONFIRM_EMAIL`, `PASSWORD_CHANGE`, `TERM_CONDITION`, `PRIVACY_POLICY`). The page is looked up by slug within that site and read with the caller's access, so anonymous callers get published pages only. `content` is already HTML with shortcodes expanded. Response is `null` for an unknown site, key or page; `400` if `key` is missing.
+
+## Revalidate webhook
+
+When content changes the CMS tells the frontend to refresh its cache. This is a **webhook your frontend must expose**:
+
+```
+POST https://{Sites.domain}/api/cms/revalidate
+Content-Type: application/json
+
+{ "collection": "posts", "id": "42", "slug": "hello-world" }
+```
+
+- Sent by the `revalidateFrontend` job ([architecture.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/architecture.md#jobs)) after a save or delete of `pages`, `posts`, `products`, `landings`, `taxonomies`, `faqs`, `shortcodes`, `menus`, `authors`; after a site settings change; and when a comment on a post becomes (or stops being) approved. A slug rename sends a second request for the old slug. Collections without a slug (`menus`, `faqs`) send the document id as `slug`; treat those as "revalidate the whole site".
+- The URL is always `https://` plus the site's `domain` field. A site with no `domain` triggers nothing.
+- Timeout 5 s. Any non-2xx response or network error fails the job and is retried (3 attempts, exponential backoff).
+- **The request is not authenticated.** Make your handler idempotent and cheap, and rate-limit or verify it at your edge if that matters to you.
+- Requires `ENABLE_JOBS_AUTORUN=true` on exactly one instance.
+
+Admins can also trigger the same ping from the editor (`POST /api/revalidate-frontend`, logged-in only; body `{ "manual": true }` is sent to the frontend). Outside production it falls back to `http://localhost:3002/api/cms/revalidate` when the site has no domain.
+
+## Admin-only helper: frontend document URL
+
+`GET /api/frontend-doc-url?collection=posts&slug=hello-world&tenantId=1` (logged-in only) returns `{ "url": "https://example.com/hello-world" }` for the editor's "View on site" link. The base URL is `FRONTEND_BASE_URL`, else `https://{Sites.domain}`, else `http://localhost:3002`. Paths are built by `publicPathFor` in `src/lib/frontend-public-path.ts`: `/product/{slug}` for `products`, `/{slug}` for `posts`, `pages` and `landings`. If your frontend uses different routes, change that one function.
+
+## Not part of this contract: `/api/mcp`
+
+`POST /api/mcp` is the Model Context Protocol endpoint for AI agents and the `kcms` CLI. It is an authenticated **write** surface (API key in `Authorization: Bearer …`), not something a public frontend calls, and its tool shapes are documented separately in [ai-integration.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/ai-integration.md).
+
+## GraphQL
+
+`POST /api/graphql` exposes the same collections and access rules. Production disables the playground (`/api/graphql-playground`) and caps query complexity at 500.
+
+```bash
+curl -s https://cms.example.com/api/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"{ Posts(where: { tenant: { equals: 1 } }, limit: 5) { docs { title slug contentMd } } }"}'
+```
+
+Because the Markdown, menu and OG-fallback hooks are REST-only, GraphQL returns the **raw** shape:
+
+| Field | GraphQL gives you | REST gives you |
+| --- | --- | --- |
+| `content`, `notice`, `body` | hidden legacy rich-text JSON | HTML |
+| `contentMd`, `noticeMd`, `bodyMd` | Markdown source — render it yourself | Markdown source |
+| `menus.tree` | canonical tree JSON | not returned |
+| `menus.items` | stored legacy array | projected from the tree |
+| `seo.openGraph.image` | stored value only | with featured-image / site-default fallback |
+
+Shortcodes are **not** expanded over GraphQL. Prefer REST for rendering pages.
+
+## Health
+
+`GET /api/health` → `200 {"status":"ok"}`. It does not query the database, so it stays green during restores and migrations.
+
+---
+
+<!-- source: https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/seo.md -->
+
+# SEO
+
+How KDIGI CMS handles SEO: the placeholder-template model, the `seo` field contract, JSON-LD generation, Open Graph fallbacks, the audit and internal-link tools, optional AI suggestions, and slug/redirect handling.
+
+The model is borrowed from Rank Math: **titles and descriptions are templates resolved at render time, not stored**. The CMS stores what editors type, generates breadcrumbs and a JSON-LD graph on save, and leaves the rest to the frontend. The API shape is in [rest-api.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/rest-api.md#seo-fields); the hook plumbing is in [architecture.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/architecture.md).
+
+## Three tiers
+
+| Tier | Where | Who writes it |
+| --- | --- | --- |
+| 1. Site templates | `Sites.seoTitles.<subgroup>.{titleTemplate, descriptionTemplate}` and `Sites.seoTitles.separator` | Admin, once per site |
+| 2. Document override | `seo.title` / `seo.description` on each document | Editor. **Empty = use the template** |
+| 3. Resolution | Frontend, at render time | Your frontend, using the same rules |
+
+The CMS deliberately does **not** persist resolved values. `makeApplySeoTemplatesHook` (`src/hooks/apply-seo-templates.ts`) runs on every save of `pages`, `posts`, `products`, `landings` and `taxonomies`, but the only thing it writes is `seo.breadcrumbs`. Consequences:
+
+- An empty `seo.title` in the API is correct, not missing data.
+- Changing a template in `Sites.seoTitles` affects every document that has no override immediately — no re-save, no re-import.
+- Do not write scripts that "fill `seo.title` for every post": they freeze values that should follow the template.
+
+The site-form help text mentions that templates apply "on save"; the code does not do that — resolution is the frontend's job.
+
+### Resolving on the frontend
+
+The effective values follow this cascade (reference implementation: `resolveSeoFields` in `src/hooks/apply-seo-templates.ts`, `resolveSeoTemplate` in `src/lib/seo/resolve-variables.ts`):
+
+```
+title              = seo.title           || template(titleTemplate)       || doc title
+description        = seo.description     || template(descriptionTemplate) || excerpt
+og:title           = seo.openGraph.title || title
+og:description     = seo.openGraph.description || description
+twitter:title      = seo.openGraph.twitterMeta.title || (useFacebookData ? og:title : '')
+twitter:description= seo.openGraph.twitterMeta.description || (useFacebookData ? og:description : '')
+```
+
+`useFacebookData` defaults to `true`.
+
+### Templates and variables
+
+`Sites.seoTitles` has a `separator` (one of `|`, `-`, `·`, `»`, `~`, `—`; default `|`) and six subgroups, each with a `titleTemplate` and a `descriptionTemplate` (not localized — they only contain variables, which resolve per locale):
+
+| Subgroup | Default title | Default description | Used for |
+| --- | --- | --- | --- |
+| `homepage` | `%sitename%` | `%excerpt%` | The front page |
+| `posts` | `%title% %sep% %sitename%` | `%excerpt%` | `posts` |
+| `pages` | `%title% %sep% %sitename%` | `%excerpt%` | `pages` |
+| `products` | `%title% %sep% %sitename%` | `%excerpt%` | `products` |
+| `landings` | `%title% %sep% %sitename%` | `%excerpt%` | `landings` |
+| `taxonomies` | `%term% %sep% %sitename%` | `%excerpt%` | `taxonomies` |
+
+Variables (case-insensitive; an unknown or empty variable is dropped and the doubled/dangling separators it leaves are cleaned up):
+
+| Variable | Value |
+| --- | --- |
+| `%title%` | Document title |
+| `%sitename%` | `Sites.knowledgeGraph.name` → `Sites.manifest.name` → `Sites.domain` |
+| `%sep%` | The site's separator |
+| `%excerpt%` | Excerpt, HTML stripped |
+| `%category%` | First category title |
+| `%focuskw%` | First focus keyword |
+| `%pt_single%`, `%pt_plural%` | Post-type labels |
+| `%date%`, `%modified%` | `YYYY-MM-DD` of publish / modify date |
+| `%term%` | Taxonomy term name |
+| `%currentyear%` | Current year (supplied by the caller) |
+| `%price%` | Document price, when the caller supplies it |
+
+## The `seo` field group
+
+Defined once in `src/fields/seo-field-group.ts` and reused by `pages`, `posts`, `products`, `landings` and `taxonomies`. **Field paths are a contract with frontends: renaming one, or changing the shape of `jsonLd`, breaks every consumer.**
+
+| Path | Type | Notes |
+| --- | --- | --- |
+| `seo.title` | text, localized | Empty → template |
+| `seo.description` | textarea, localized | Empty → template |
+| `seo.focusKeywords` | text, many | First one drives the score |
+| `seo.openGraph.title`, `.description`, `.imageAlt` | localized | |
+| `seo.openGraph.image` | upload → `media` | Filled at read time when empty, see [OG image cascade](#og-image-cascade) |
+| `seo.openGraph.siteName`, `.url`, `.type`, `.locale` | text, hidden | `type` defaults to `website` |
+| `seo.openGraph.twitterMeta.{useFacebookData, card, title, description, image}` | group | **Nested inside `openGraph`**; `card` is `summary` or `summary_large_image` (default) |
+| `seo.breadcrumbs[]` | array `{ url, text (localized), isHidden }` | Hidden in the admin UI but present in REST. Auto-generated, see below |
+| `seo.breadcrumbTitle` | text, localized, hidden | |
+| `seo.canonicalOverride` | text | Also used as the URL in the JSON-LD `WebPage` |
+| `seo.robots` | select, many | Default `['index','follow']`; also allows `max-snippet:-1`, `max-image-preview:large`, `max-video-preview:-1` |
+| `seo.articleMeta.{publishedTime, modifiedTime}` | dates, hidden | **Top-level sibling** of `openGraph`; written by the JSON-LD hook |
+| `seo.updatedTime` | date, hidden | Written by the JSON-LD hook |
+| `seo.jsonLd.raw` | textarea, read-only, hidden | An object with one string; see below |
+| `seo.aiTitleBtn`, `aiDescBtn`, `openGraph.aiOgAltBtn`, `aiFaqBtn` | ui | Buttons calling [`/api/seo/ai-generate`](#ai-seo-generation-optional) |
+| `seo.internalLinkSuggester`, `seo.seoAnalysis` | ui | Client-side panels. **The SEO score is never stored** |
+
+## Breadcrumbs
+
+`seo.breadcrumbs` is generated on save only when it is empty (a blank-only guard: editor-entered or imported breadcrumbs are never overwritten). Documents mapped as the front page (`Sites.pageGroup` key `FRONT_PAGE`) and documents without a slug are skipped.
+
+The trail is `[site name] + [primary taxonomy term and its parent chain] + [current document]`, all with `isHidden: false`. The first crumb's URL is `https://{Sites.domain}` and its text is the site name (falling back to "Trang chủ"). The leaf URL is `https://{domain}/{slug}/`, `https://{domain}/product/{slug}/` for products, or `seo.canonicalOverride` when set. Which taxonomy supplies the middle crumb is set in `Sites.breadcrumbs`:
+
+| Field | Default | Options |
+| --- | --- | --- |
+| `primaryTaxonomyProduct` | `product-category` | `none`, `product-category`, `category`, `tag` |
+| `primaryTaxonomyPost` | `category` | same |
+
+The hook looks in the document's `categories` for a term whose `type` matches, then walks `parent`. Only `posts` and `products` get a middle crumb; `pages`, `landings` and taxonomy terms are flat.
+
+## JSON-LD
+
+`makeGenerateJsonLdHook(docType)` (`src/hooks/generate-jsonld.ts`) runs as `afterChange` on `pages`, `posts`, `products`, `landings` and `taxonomies`. It builds one schema.org `@graph` and stores it in `seo.jsonLd.raw`.
+
+What it persists: `seo.jsonLd.raw`, `seo.articleMeta.{publishedTime, modifiedTime}` and `seo.updatedTime`, in a single parameterised `UPDATE` of those four scalar columns (`persistJsonLdRaw`). It does not call `payload.update`, so there is no second version row and the other locale is untouched ([architecture.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/architecture.md#versioned-collections-must-not-re-save-their-own-document)).
+
+`seo.jsonLd.raw` is the full `<script type="application/ld+json">…</script>` element (`serializeJsonLdScript` in `src/lib/jsonld/serialize.ts`) that the frontend injects verbatim. Every `<` inside the payload is escaped as `\u003c`, so a `</script>` in a title cannot break out. Both the hook and any bulk regeneration must serialise through that module.
+
+### Graph contents
+
+All nodes live in a single `@graph` with stable `@id`s (`{siteUrl}/#organization`, `{siteUrl}/#website`, `{pageUrl}#webpage`, `{pageUrl}#breadcrumb`). `siteUrl` is `https://{Sites.domain}`; `pageUrl` is `siteUrl/slug/` or `seo.canonicalOverride`.
+
+| Document | Nodes (assembler in `src/lib/jsonld/graph-assembler.ts`) |
+| --- | --- |
+| `posts` | `BlogPosting`, `Person` (author), `WebPage`, `ImageObject`, `BreadcrumbList`, `WebSite`, `Organization`, `Place`. FAQs from the document's `faqs` are nested in the `BlogPosting` as `subjectOf` |
+| `pages` | `WebPage` (`ContactPage` for slugs `lien-he`, `contact`, `contact-us`; `AboutPage` for `gioi-thieu`, `about`, `about-us`), `ImageObject`, `BreadcrumbList`, standalone `FAQPage`, site nodes, plus a `LocalBusiness` per `Sites.knowledgeGraph.additionalOffices[]` |
+| `products` | `Product` (with `Offer` and optional `AggregateRating`), `ItemPage`, `ImageObject`, `BreadcrumbList`, `FAQPage`, site nodes. URL is `/product/{slug}/` |
+| `landings` | Same assembler as products |
+| `taxonomies` | `CollectionPage`, `ImageObject`, `BreadcrumbList`, site nodes |
+
+Site nodes come from `Sites` (`src/lib/jsonld/site-config-loader.ts`), explicit fields first, legacy heuristics (`contact`, `footer`, `branding`) only when the explicit ones are blank:
+
+| JSON-LD | Source |
+| --- | --- |
+| `Organization` name / legal name / description | `knowledgeGraph.name`, `.legalName`, `.description` (name falls back to `manifest.name`, then the domain) |
+| Extra `@type` before `Organization` | `knowledgeGraph.businessType`: `Organization`, `LocalBusiness`, `ProfessionalService`, `Store`, `Restaurant` |
+| Logo | `knowledgeGraph.logo`, else `branding.logo` |
+| `telephone` | `knowledgeGraph.telephoneE164` (normalised on save by `normalizeTelephoneE164`), else `telephone` |
+| Address, geo, opening hours | `knowledgeGraph.address`, `.geo`, `.openingHours[]` (emitted as `OpeningHoursSpecification`) |
+| `foundingDate`, `founders`, `areaServed`, `knowsLanguage`, `contactPoint`, `priceRange`, `email` | same-named `knowledgeGraph` fields |
+| `sameAs` | `Sites.socialProfiles[].url`, plus `knowledgeGraph.wikidataId` (as a Wikidata URL), `wikipediaUrl`, `youtubeChannelUrl`, `tiktokUrl` |
+| `WebSite` `SearchAction` | `knowledgeGraph.searchActionUrl` |
+| Aggregate-rating threshold | `knowledgeGraph.minReviewsForAggregate` (default 10) |
+
+If the site cannot be loaded the hook skips persisting rather than wiping an existing graph.
+
+### URL segments
+
+Public paths used in the graph, in breadcrumbs and in redirects come from `src/fields/slug-url-prefix-map.ts`: `products` live under `/product/`, taxonomy type `product-category` under `/product-category/`, everything else (`posts`, `pages`, `landings`, taxonomy types `category`, `tag`, `custom`) at the site root. That map is a display/URL-building convention only — edit its tables if your frontend routes differently, and keep `publicPathFor` in `src/lib/frontend-public-path.ts` in step.
+
+### Product details
+
+- `offers` is emitted only when `prices[0].currentPrice > 0`; a missing or zero price logs a warning and omits the offer (no "free" offers). `priceValidUntil` comes from `prices[0].validUntil`; the seller is `{siteUrl}/#organization`.
+- `aggregateRating` is emitted only when the rating is not perfect (`avg < 5`) **and** either `aggregateRatingOverride` is on, or `count >= minReviewsForAggregate` **and** at least one approved local comment exists (`commentCount > 0`). Imported star ratings alone never produce it (`src/lib/jsonld/product.ts`).
+- `FAQPage` entries need both a question and an answer; incomplete ones are dropped, and with none left the node is omitted.
+- `buildProduct` writes `priceCurrency` from the first price row's `prices[].currency` select (default `VND`).
+
+## OG image cascade
+
+Order: `seo.openGraph.image` → the document's `featuredImage` → `Sites.seoDefaults.ogImage`.
+
+`makeResolveOgImageFallbackHook` (`src/hooks/resolve-og-image-fallback.ts`) applies this as an `afterRead` hook **for REST reads only** and never writes the fallback back, so the value always follows the current featured image and site default. A stored OG image that is merely a stale copy of the site default is replaced by the document's own featured image. Taxonomies have no `featuredImage` and fall back straight to the site default. The JSON-LD hook uses the same order, so `<meta property="og:image">` and the graph agree.
+
+## Slugs and redirects
+
+- `slug` is auto-generated from the title when blank (lower-case, `đ`→`d`, diacritics stripped, non-alphanumerics → `-`). It is **not localized** and unique per site among non-trashed documents; a trashed document keeps its slug, and restoring it onto a slug now taken by another document fails with a bilingual field error (`makeGuardRestoreSlugConflict`).
+- Changing the slug of an existing document makes `autoRedirectOnSlugChange` create a `redirects` row (`301`, `isEnabled: true`) from the old public path to the new one: `/{slug}/` for posts, pages and landings; `/{segment}/{slug}/` when the collection has a URL segment (`products` → `product`, from `src/fields/slug-url-prefix-map.ts`). It skips if a redirect from that path already exists for the site, never blocks the save, and logs failures. Scripts that rename slugs outside the admin must create redirects themselves.
+- Redirect rules (`redirects` collection): `from` is normalised to start with `/`, `to` must be an internal path, `from` and `to` cannot be equal; chains are only warned about. Your frontend applies them ([rest-api.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/rest-api.md#redirects)).
+- The same save also queues a revalidate job for the **old** slug so its cached page is refreshed.
+
+## SEO audit
+
+`GET /api/seo/audit` (logged-in) scans `posts`, `pages`, `products` and `landings` of one site and returns the deficient documents, worst first.
+
+| Param | Notes |
+| --- | --- |
+| `tenantId` | Optional; honoured only for a super-admin or a member of that site |
+| `limit` | Documents inspected per collection; default 50, max 200 |
+
+Site resolution: `tenantId` param → `payload-tenant` cookie (the admin's selected site, validated against membership) → the user's first site; none → `400`. Response: `{ tenantId, total, deficient: [{ id, collection, title, score, reasons, adminUrl }] }` (`401` when not logged in, `500` on query failure).
+
+A document is deficient when its **stored** `seo.title` or `seo.description` is blank, `seo.robots` contains `noindex`, or its score is below 50. `reasons` can contain `missing-title`, `missing-desc`, `noindex`, `broken-canonical` (a canonical override that does not start with `http`) and `low-score:<n>`. Because titles are normally left blank under the placeholder model, most documents will report `missing-title`/`missing-desc` unless editors set explicit values; read that as "no explicit override", not as "no title on the page".
+
+The same audit powers the dashboard widget (`src/components/admin/seo-audit-widget.tsx`, via `src/lib/seo-audit-core.ts`).
+
+### Score
+
+`computeSeoScore` (`src/lib/seo-score.ts`) returns 0–100 plus a traffic-light checklist: focus keyword set / in title / in description / in slug / in the first 10% of the text / density (1–1.5% is good), title ≤ 60 characters, description ≤ 160, URL ≤ 75 characters, at least one internal Markdown link, and content-length tiers tuned for Vietnamese syllables. It runs in the editor and in the audit; it is not persisted.
+
+## Internal link suggestions
+
+`GET /api/seo/internal-link-suggest` (logged-in) powers the editor's link suggester.
+
+| Param | Notes |
+| --- | --- |
+| `docId`, `collection` | Required; the current document is excluded |
+| `keyword` | Preferred token source |
+| `title` | Fallback token source |
+| `limit` | Default 5, max 10 |
+
+It tokenises the keyword (or title) — lower-cased, diacritics stripped, tokens of 3+ characters — and scores up to 100 recent documents per collection (`posts`, `pages`, `products`, `landings`) of the caller's site: 2 points per title token match, 1 per slug token match. Results are `{ suggestions: [{ id, collection, title, slug, score, adminUrl, frontendSlug }] }`, with `frontendSlug` built by `publicPathFor` (`/product/{slug}` for products, `/{slug}` otherwise). The site is the validated `payload-tenant` cookie or the user's first site (`400` otherwise), and the query runs with the caller's own access rights.
+
+## AI SEO generation (optional)
+
+`POST /api/seo/ai-generate` (logged-in) returns a suggestion for one SEO field from an OpenAI-compatible chat API. It is optional: with no key configured the admin buttons still render, and the endpoint answers `502 {"error":"AI generation failed. Please try again."}` and logs the configuration error.
+
+| Env var | Meaning |
+| --- | --- |
+| `DEEPSEEK_API_KEY` | API key. **Required to enable** |
+| `DEEPSEEK_MODEL` | Model id. Required, no default — `pnpm verify:deepseek` (`src/scripts/verify-deepseek-model.ts`) checks that a model answers in JSON mode |
+| `SEO_AI_RATE_LIMIT` | Calls per user per 60 s, default `20` |
+
+The client uses the `openai` SDK with `baseURL: 'https://api.deepseek.com'` hard-coded in `src/lib/ai/deepseek-client.ts` (timeout 90 s, 3 SDK retries, JSON-object responses with one retry on a parse failure). There is no env var for the base URL; to use another OpenAI-compatible provider, change that file. The key never leaves the server. There is no boot warning for a missing key — the failure only shows up when someone clicks a generate button.
+
+Request body:
+
+| Field | Notes |
+| --- | --- |
+| `field` | `title`, `description`, `faq` or `alt` |
+| `docTitle` | Required |
+| `docContent` | Optional plain-text excerpt, truncated to 600 characters |
+| `focusKeyword` | Optional |
+| `imageContext` | `alt` only |
+| `count` | `faq` only: 1–10, default 3 |
+
+Response `200`: `{ "suggestion": "…" }`; for `faq` the suggestion is a JSON-stringified array of `{ question, answer }`. Errors: `401` not logged in, `400` bad `field`/`docTitle`/JSON, `429` rate limit, `502` provider error or malformed answer. Prompts (`src/lib/ai/seo-prompts.ts`) are written in Vietnamese and target 40–65 characters for titles, 100–165 for descriptions and ≤ 125 for alt text.
+
+Rate limiting is a per-process, in-memory rolling window keyed by the logged-in user id (never by anything in the request body); it resets on restart and is not shared between instances. The "Generate FAQ" button is **preview-only**: FAQs live in their own collection and the button cannot write there.
+
+## Stability contract and WordPress-migrated sites
+
+Sites migrated from WordPress often rank on the strength of their existing markup, so the SEO surface is kept stable on purpose: the `seoFieldGroup` field paths, the `seo.jsonLd.raw` format, and the structure rules above (`twitterMeta` inside `openGraph`, `articleMeta` beside it, `breadcrumbs` with `isHidden`). The robots options include Rank Math's `max-*` directives so migrated values carry over verbatim, and the graph includes a `Place` node and per-office `LocalBusiness` nodes like Rank Math output. Treat any change to these as a breaking API change and roll it out together with your frontends. For the migration pipeline itself see [wordpress-migration/README.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/wordpress-migration/README.md).

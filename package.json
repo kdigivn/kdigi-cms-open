@@ -24,6 +24,7 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:llms": "node --import tsx src/scripts/generate-llms.ts",
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"packages/*/src/**/*.test.ts\"",
     "kcms": "node --import tsx packages/kcms-cli/src/cli.ts",
     "test:e2e": "playwright test",

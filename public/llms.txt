@@ -1,0 +1,22 @@
+# KDIGI CMS
+
+> Open-source headless multi-site CMS (Payload 3 + Next.js + PostgreSQL). Public websites read content over an anonymous REST API filtered by site (`where[tenant][equals]=<site id>`) and expose a revalidate webhook; editors and AI agents write content through the authenticated MCP endpoint `/api/mcp`, which a public website never calls.
+
+Building a website on this CMS: read the frontend contract below (or the single-file version at /llms-full.txt) and install the `kcms-frontend` agent skill. Per-site facts (site id, locales, menus, routes) come from `kcms frontend context --site <siteKey>`, which writes a KCMS.md file.
+
+## Frontend contract
+
+- [Full frontend contract](/llms-full.txt): kcms-frontend skill, contract digest, REST API and SEO docs in one file
+- [REST API](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/rest-api.md): anonymous reads, site filter, locales, HTML fields, SEO fields, menus, comments, ratings, redirects, media, revalidate webhook
+- [SEO](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/seo.md): title/description templates resolved by the frontend, JSON-LD, Open Graph fallbacks, slugs and redirects
+- [Multi-site](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/multi-site.md): the Sites document, site selection, per-site settings
+- [Building a frontend with AI](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/frontend-with-ai.md): step-by-step guide and prompts for AI coding agents
+
+## Agent skills
+
+- [kcms-frontend](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms-frontend/SKILL.md): rules and per-framework references (Next.js, Astro, SvelteKit, Nuxt, React/Angular) for building a public site
+- [kcms](https://github.com/kdigivn/kdigi-cms-open/blob/main/skills/kcms/SKILL.md): creating, editing and publishing content through MCP or the kcms CLI
+
+## Optional
+
+- [AI integration](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/ai-integration.md): MCP endpoint, API keys, the kcms CLI
