@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { mergeCodexToml, planSetup, SETUP_TARGETS } from './setup-targets.js'
+import { BUNDLED_SKILLS, mergeCodexToml, parseSkillNames, planSetup, SETUP_TARGETS } from './setup-targets.js'
 
 const BASE = { baseUrl: 'https://cms.example.com', cwd: '/work/site', home: '/home/me' }
 const SECRET = 'change-me-real-key-value'
@@ -40,6 +40,38 @@ describe('kcms setup', () => {
   it('puts OMP user config and skills under ~/.omp/agent', () => {
     const plan = planSetup({ target: 'omp', scope: 'user', ...BASE })
     assert.equal(plan.file, '/home/me/.omp/agent/mcp.json')
-    assert.equal(plan.skillDir, '/home/me/.omp/agent/skills/kcms')
+    assert.equal(plan.skillsRoot, '/home/me/.omp/agent/skills')
+  })
+
+  it('resolves --with-skill: absent, bare, and comma-separated lists', () => {
+    assert.deepEqual(parseSkillNames(undefined), [])
+    assert.deepEqual(parseSkillNames(true), ['kcms'])
+    assert.deepEqual(parseSkillNames('kcms-frontend'), ['kcms-frontend'])
+    assert.deepEqual(parseSkillNames(' kcms , kcms-frontend '), ['kcms', 'kcms-frontend'])
+    assert.deepEqual(parseSkillNames('kcms,kcms'), ['kcms'])
+    assert.deepEqual(parseSkillNames('kcms,'), ['kcms'])
+  })
+
+  it('rejects unknown or empty --with-skill values listing the valid names', () => {
+    for (const value of ['nope', 'kcms,terms', '']) {
+      assert.throws(
+        () => parseSkillNames(value),
+        (err: unknown) => err instanceof Error && BUNDLED_SKILLS.every((name) => err.message.includes(name)),
+        `"${value}" should be rejected`,
+      )
+    }
+  })
+
+  it('exposes the skills root per target/scope', () => {
+    const roots = SETUP_TARGETS.map((target) => [target, planSetup({ target, scope: 'project', ...BASE }).skillsRoot])
+    assert.deepEqual(roots, [
+      ['claude-code', '/work/site/.claude/skills'],
+      ['codex', '/work/site/.codex/skills'],
+      ['cursor', '/work/site/.cursor/skills'],
+      ['vscode', '/work/site/.github/skills'],
+      ['omp', '/work/site/.omp/skills'],
+      ['json', undefined],
+    ])
+    assert.equal(planSetup({ target: 'vscode', scope: 'user', ...BASE }).skillsRoot, undefined)
   })
 })

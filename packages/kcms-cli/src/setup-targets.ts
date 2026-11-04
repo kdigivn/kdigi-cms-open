@@ -17,6 +17,24 @@ export type SetupScope = 'project' | 'user'
 export const SERVER_NAME = 'kdigi'
 export const KEY_ENV = 'KCMS_API_KEY'
 
+/** Agent skills shipped in the npm package (repo `skills/<name>`), installable with `--with-skill`. */
+export const BUNDLED_SKILLS = ['kcms', 'kcms-frontend'] as const
+export type BundledSkill = (typeof BUNDLED_SKILLS)[number]
+
+/**
+ * Resolve `--with-skill`: bare flag → `kcms` (the original behaviour), comma-separated list →
+ * exactly those skills, absent → none. Unknown or empty names are usage errors.
+ */
+export function parseSkillNames(value: true | string | undefined): BundledSkill[] {
+  if (value === undefined) return []
+  if (value === true) return ['kcms']
+  const names = [...new Set(value.split(',').map((name) => name.trim()).filter(Boolean))]
+  if (names.length === 0) throw usageError(`--with-skill needs at least one skill name. Valid names: ${BUNDLED_SKILLS.join(', ')}.`)
+  const unknown = names.filter((name) => !(BUNDLED_SKILLS as readonly string[]).includes(name))
+  if (unknown.length) throw usageError(`Unknown skill ${unknown.map((name) => `"${name}"`).join(', ')}. Valid names: ${BUNDLED_SKILLS.join(', ')}.`)
+  return names as BundledSkill[]
+}
+
 export interface SetupPlan {
   /** File to write with `--write`; absent → print-only target/scope. */
   file?: string
@@ -24,8 +42,8 @@ export interface SetupPlan {
   snippet: string
   /** Produce the new file content from the existing one ('' when absent). */
   merge?: (existing: string) => string
-  /** Where `--with-skill` copies the bundled skill. */
-  skillDir?: string
+  /** Where `--with-skill` copies bundled skills: the parent of `<name>/`. */
+  skillsRoot?: string
   notes: string[]
 }
 
@@ -82,7 +100,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
       if (scope === 'user') {
         return {
           snippet: `claude mcp add --transport http --scope user ${SERVER_NAME} ${url} --header "Authorization: Bearer $${KEY_ENV}"`,
-          skillDir: join(home, '.claude', 'skills', 'kcms'),
+          skillsRoot: join(home, '.claude', 'skills'),
           notes: [
             'Run the command above. Warning: your shell expands $KCMS_API_KEY, so the literal key is stored in ~/.claude.json.',
             'Prefer --scope project: .mcp.json keeps only the ${KCMS_API_KEY} reference.',
@@ -94,7 +112,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
         file: join(cwd, '.mcp.json'),
         snippet: JSON.stringify(doc, null, 2),
         merge: mergeJson('mcpServers', httpEntry),
-        skillDir: join(cwd, '.claude', 'skills', 'kcms'),
+        skillsRoot: join(cwd, '.claude', 'skills'),
         notes: [keyNote, 'Claude Code expands ${KCMS_API_KEY} when it loads .mcp.json; approve the server on first use.'],
       }
     }
@@ -104,7 +122,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
         file,
         snippet: codexBlock(url),
         merge: (existing) => mergeCodexToml(existing, url),
-        skillDir: at('.codex/skills/kcms', '.codex/skills/kcms'),
+        skillsRoot: at('.codex/skills', '.codex/skills'),
         notes: [keyNote, 'Codex reads the bearer token from KCMS_API_KEY at startup.'],
       }
     }
@@ -114,7 +132,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
         file: at('.cursor/mcp.json', '.cursor/mcp.json'),
         snippet: JSON.stringify({ mcpServers: { [SERVER_NAME]: entry } }, null, 2),
         merge: mergeJson('mcpServers', entry),
-        skillDir: at('.cursor/skills/kcms', '.cursor/skills/kcms'),
+        skillsRoot: at('.cursor/skills', '.cursor/skills'),
         notes: [keyNote, 'Restart Cursor (or toggle the server in Settings → MCP) after writing.'],
       }
     }
@@ -133,7 +151,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
         file: join(cwd, '.vscode', 'mcp.json'),
         snippet,
         merge: mergeJson('servers', entry, addInput),
-        skillDir: join(cwd, '.github', 'skills', 'kcms'),
+        skillsRoot: join(cwd, '.github', 'skills'),
         notes: ['VS Code prompts for the API key on first start and stores it in its secret storage.'],
       }
     }
@@ -142,7 +160,7 @@ export function planSetup({ target, scope, baseUrl, cwd, home }: SetupInput): Se
         file: at('.omp/mcp.json', '.omp/agent/mcp.json'),
         snippet: JSON.stringify({ mcpServers: { [SERVER_NAME]: httpEntry } }, null, 2),
         merge: mergeJson('mcpServers', httpEntry),
-        skillDir: at('.omp/skills/kcms', '.omp/agent/skills/kcms'),
+        skillsRoot: at('.omp/skills', '.omp/agent/skills'),
         notes: [keyNote, 'OMP expands ${KCMS_API_KEY} when it discovers the server.'],
       }
     }

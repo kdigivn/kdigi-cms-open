@@ -3,6 +3,7 @@ import { Command } from 'commander'
 
 import { CLI_VERSION } from './client.js'
 import { registerContentCommands } from './commands/content.js'
+import { registerFrontendCommands } from './commands/frontend.js'
 import { registerMiscCommands } from './commands/misc.js'
 import { registerSetupCommands } from './commands/setup.js'
 
@@ -23,6 +24,7 @@ const program = new Command()
 registerMiscCommands(program)
 registerContentCommands(program, 'posts')
 registerContentCommands(program, 'pages')
+registerFrontendCommands(program)
 registerSetupCommands(program)
 
 await program.parseAsync(process.argv)

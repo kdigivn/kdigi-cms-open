@@ -2,7 +2,7 @@
 
 `kcms` is the command line and MCP bridge for [KDIGI CMS](https://github.com/kdigivn/kdigi-cms-open). Use it to write, edit and publish content from your terminal, or to connect an AI tool (Claude Code, Codex, Cursor, VS Code, OMP, …) to your CMS.
 
-Every command calls the CMS's MCP endpoint (`POST /api/mcp`) as the user who owns the API key. That user's role and sites apply.
+Every command calls the CMS's MCP endpoint (`POST /api/mcp`) as the user who owns the API key. That user's role and sites apply. The one exception is `kcms frontend context`, which reads the public REST API anonymously and needs no key.
 
 ## Install
 
@@ -70,6 +70,7 @@ Add `--json` to any command for machine-readable output. Exit codes: `1` error, 
 ```bash
 export KCMS_API_KEY=…                       # in your shell profile
 kcms setup claude-code --write --with-skill # .mcp.json + .claude/skills/kcms
+kcms setup claude-code --write --with-skill kcms,kcms-frontend   # both skills
 kcms setup codex --write --scope user       # ~/.codex/config.toml
 kcms setup cursor --write                   # .cursor/mcp.json
 kcms setup vscode --write                   # .vscode/mcp.json (prompts for the key)
@@ -77,7 +78,7 @@ kcms setup omp --write --with-skill         # .omp/mcp.json + .omp/skills/kcms
 kcms setup json                             # generic config to copy
 ```
 
-Without `--write` the config is only printed. Generated files reference `KCMS_API_KEY` and never contain the key itself. `--with-skill` installs the bundled agent skill, which teaches the agent the safe workflow (read before write, drafts first, `expectedUpdatedAt`).
+Without `--write` the config is only printed. Generated files reference `KCMS_API_KEY` and never contain the key itself. `--with-skill [names]` installs bundled agent skills into the tool's skills folder (`<skills dir>/<name>/`): bare `--with-skill` installs `kcms`, which teaches the agent the safe editorial workflow (read before write, drafts first, `expectedUpdatedAt`); `kcms-frontend` teaches it to build a public website on the REST API. Pass a comma-separated list for several; unknown names are refused.
 
 For clients that only support stdio servers, `kcms mcp` runs a local stdio MCP server that forwards to the CMS:
 
@@ -87,12 +88,22 @@ For clients that only support stdio servers, `kcms mcp` runs a local stdio MCP s
 
 Full guide: [docs/ai-integration.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/ai-integration.md).
 
+## Build a website with an AI agent
+
+```bash
+cd my-frontend
+kcms setup claude-code --write --with-skill kcms,kcms-frontend
+kcms frontend context --url https://cms.example.com --site example-site   # writes KCMS.md
+```
+
+`kcms frontend context [-o <file>] [--stdout] [--force]` writes `KCMS.md`: the site's tenant id, domain, locales, menus, `pageGroup` mapping, published counts, trimmed sample documents, route rules and webhook URL — the facts an AI cannot guess. It uses anonymous REST only (never sends a key, even if one is configured), so the file is safe to commit. It refuses to overwrite an existing file without `--force`. Add `Read KCMS.md before working on CMS data.` to your `AGENTS.md` / `CLAUDE.md`. Guide: [docs/frontend-with-ai.md](https://github.com/kdigivn/kdigi-cms-open/blob/main/docs/frontend-with-ai.md).
+
 ## Releasing (maintainers)
 
 Publishing is manual from a machine logged in to the `@kdigi` npm scope:
 
 1. Bump `version` in `packages/kcms-cli/package.json` and `CLI_VERSION` in `src/client.ts`; add a CHANGELOG entry.
-2. `pnpm --filter @kdigi/kcms-cli build` (copies `skills/kcms` into the package and compiles to `dist/`).
+2. `pnpm --filter @kdigi/kcms-cli build` (copies every repo `skills/*` folder that has a `SKILL.md` into the package and compiles to `dist/`).
 3. `cd packages/kcms-cli && npm pack --dry-run` and check the file list.
 4. `pnpm --filter @kdigi/kcms-cli publish --access public`.
 

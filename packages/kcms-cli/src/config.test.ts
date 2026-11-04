@@ -4,7 +4,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it } from 'node:test'
 
-import { isInsecureRemote, normalizeBaseUrl, readConfig, resolveConnection, writeConfig } from './config.js'
+import { isInsecureRemote, normalizeBaseUrl, readConfig, resolveBaseUrlAndSite, resolveConnection, writeConfig } from './config.js'
+import { CliError } from './errors.js'
 
 const config = {
   default: 'work',
@@ -32,6 +33,34 @@ describe('resolveConnection', () => {
   it('fails with a login hint when no key is available', () => {
     assert.throws(() => resolveConnection({}, {}, { profiles: {} }), /kcms login/)
     assert.throws(() => resolveConnection({ profile: 'missing' }, {}, config), /does not exist/)
+  })
+})
+
+describe('resolveBaseUrlAndSite', () => {
+  it('resolves url, site and profile without any API key', () => {
+    const keyless = { default: 'local', profiles: { local: { url: 'http://localhost:3000', site: 'demo' } } }
+    assert.deepEqual(resolveBaseUrlAndSite({}, {}, keyless), { url: 'http://localhost:3000', site: 'demo', profile: 'local' })
+  })
+
+  it('keeps the flag > env > profile precedence and normalizes the URL', () => {
+    assert.deepEqual(resolveBaseUrlAndSite({ url: 'https://flag.example.com/admin/', site: 'flag-site' }, { KCMS_URL: 'https://env.example.com', KCMS_SITE: 'env-site' }, config), {
+      url: 'https://flag.example.com',
+      site: 'flag-site',
+      profile: 'work',
+    })
+    assert.deepEqual(resolveBaseUrlAndSite({}, { KCMS_SITE: 'env-site' }, { profiles: { p: { url: 'https://p.example.com' } }, default: 'p' }), {
+      url: 'https://p.example.com',
+      site: 'env-site',
+      profile: 'p',
+    })
+  })
+
+  it('fails as a usage error when no URL is configured and rejects unknown profiles', () => {
+    assert.throws(
+      () => resolveBaseUrlAndSite({}, {}, { profiles: {} }),
+      (err: unknown) => err instanceof CliError && err.exitCode === 2 && /No CMS URL/.test(err.message),
+    )
+    assert.throws(() => resolveBaseUrlAndSite({ profile: 'missing' }, {}, config), /does not exist/)
   })
 })
 

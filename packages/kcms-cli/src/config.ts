@@ -19,11 +19,14 @@ export interface ConfigFile {
   profiles: Record<string, Profile>
 }
 
-export interface Connection {
+export interface BaseConnection {
   url: string
-  apiKey: string
   site?: string
   profile: string
+}
+
+export interface Connection extends BaseConnection {
+  apiKey: string
 }
 
 export interface ConnectionFlags {
@@ -75,16 +78,32 @@ export function isInsecureRemote(url: string): boolean {
   return protocol === 'http:' && !LOCAL_HOSTS.includes(hostname)
 }
 
-export function resolveConnection(flags: ConnectionFlags, env: NodeJS.ProcessEnv = process.env, config = readConfig(configPath(env))): Connection {
-  const profileName = flags.profile ?? env.KCMS_PROFILE ?? config.default ?? 'default'
-  const profile: Partial<Profile> = config.profiles[profileName] ?? {}
+/** Profile chosen by flag > `KCMS_PROFILE` > config default; an explicitly named missing profile is a usage error. */
+function selectProfile(flags: ConnectionFlags, env: NodeJS.ProcessEnv, config: ConfigFile): { name: string; profile: Partial<Profile> } {
+  const name = flags.profile ?? env.KCMS_PROFILE ?? config.default ?? 'default'
   if (flags.profile && !config.profiles[flags.profile]) {
     throw new CliError(`Profile "${flags.profile}" does not exist — run: kcms login --profile ${flags.profile}`, EXIT.usage)
   }
+  return { name, profile: config.profiles[name] ?? {} }
+}
+
+/**
+ * Resolve the CMS URL, site and profile without touching credentials — commands that only read
+ * public REST (e.g. `frontend context`) must work with no API key configured.
+ */
+export function resolveBaseUrlAndSite(flags: ConnectionFlags, env: NodeJS.ProcessEnv = process.env, config = readConfig(configPath(env))): BaseConnection {
+  const { name, profile } = selectProfile(flags, env, config)
+  const url = flags.url ?? env.KCMS_URL ?? profile.url
+  if (!url) throw new CliError('No CMS URL — pass --url, set KCMS_URL, or run `kcms login`.', EXIT.usage)
+  return { url: normalizeBaseUrl(url), site: flags.site ?? env.KCMS_SITE ?? profile.site, profile: name }
+}
+
+export function resolveConnection(flags: ConnectionFlags, env: NodeJS.ProcessEnv = process.env, config = readConfig(configPath(env))): Connection {
+  const { name, profile } = selectProfile(flags, env, config)
   const url = flags.url ?? env.KCMS_URL ?? profile.url
   const apiKey = env.KCMS_API_KEY || profile.apiKey
   if (!url || !apiKey) {
     throw new CliError('Not configured — run `kcms login`, or set KCMS_URL and KCMS_API_KEY.', EXIT.auth)
   }
-  return { url: normalizeBaseUrl(url), apiKey, site: flags.site ?? env.KCMS_SITE ?? profile.site, profile: profileName }
+  return { url: normalizeBaseUrl(url), apiKey, site: flags.site ?? env.KCMS_SITE ?? profile.site, profile: name }
 }
