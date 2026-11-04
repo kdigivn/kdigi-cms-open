@@ -29,6 +29,7 @@ Reference documentation for KDIGI CMS, an AI-native, open-source headless multi-
 | Doc | Topic |
 | --- | --- |
 | [REST and GraphQL API](rest-api.md) | the public contract frontends rely on |
+| [Building a frontend with AI](frontend-with-ai.md) ([Tiếng Việt](frontend-with-ai.vi.md)) | `kcms-frontend` skill, `KCMS.md`, `/llms.txt`, prompts per framework |
 | [Architecture](architecture.md) | stack, source layout, hooks, jobs, custom endpoints |
 | [Admin theming](admin-theming.md) | rebrand and restyle the admin panel |
 

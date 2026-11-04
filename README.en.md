@@ -91,6 +91,8 @@ curl 'https://cms.example.com/api/posts?where[tenant][equals]=1&sort=-publishedA
 
 Anonymous requests only see published content; Markdown body fields come back as HTML under the original field key. GraphQL lives at `/api/graphql`. The full contract (locale, SEO, menus, comments, revalidation): [docs/rest-api.md](docs/rest-api.md).
 
+Building the site with an AI coding agent? Install the `kcms-frontend` skill and generate a `KCMS.md` with `kcms frontend context`; agents without the CLI can read `/llms.txt` on the CMS host. See [docs/frontend-with-ai.md](docs/frontend-with-ai.md).
+
 ## Deploy
 
 Docker Compose on any VPS, or [Coolify](https://coolify.io) with [`docker-compose.coolify.yml`](docker-compose.coolify.yml). The container applies migrations on start. Back up both the database and the media directory. See [docs/deploy.md](docs/deploy.md).

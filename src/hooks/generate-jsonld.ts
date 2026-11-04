@@ -3,7 +3,8 @@
  * for Pages, Posts, Landings, and Products.
  *
  * Output shape: { "@context": "https://schema.org", "@graph": [...nodes] }
- * Stored as JSON string in seo.jsonLd.raw — the frontend wraps it in <script> tags.
+ * Stored in seo.jsonLd.raw as a complete `<script type="application/ld+json">` element
+ * (`serializeJsonLdScript`) — the frontend injects it verbatim, without wrapping.
  *
  * Non-blocking: errors are logged but never thrown to avoid breaking saves.
  * Persistence is a scalar-only column write (`persistJsonLdRaw`, SP1a-1 [RT-3]) — no nested

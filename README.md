@@ -91,6 +91,8 @@ curl 'https://cms.example.com/api/posts?where[tenant][equals]=1&sort=-publishedA
 
 Request ẩn danh chỉ thấy nội dung đã xuất bản; trường nội dung Markdown được trả về dạng HTML ở đúng khóa gốc. GraphQL tại `/api/graphql`. Hợp đồng API đầy đủ (locale, SEO, menu, bình luận, revalidate): [docs/rest-api.md](docs/rest-api.md).
 
+Dùng AI coding agent để làm site? Cài skill `kcms-frontend` và tạo `KCMS.md` bằng `kcms frontend context`; agent không có CLI thì đọc `/llms.txt` trên host CMS. Xem [docs/frontend-with-ai.vi.md](docs/frontend-with-ai.vi.md).
+
 ## Triển khai
 
 Docker Compose trên bất kỳ VPS nào, hoặc [Coolify](https://coolify.io) với [`docker-compose.coolify.yml`](docker-compose.coolify.yml). Container tự chạy migration khi khởi động. Nhớ sao lưu cả database và thư mục media. Xem [docs/deploy.md](docs/deploy.md).

@@ -41,7 +41,7 @@ export KCMS_API_KEY=change-me
 kcms setup <claude-code|codex|cursor|vscode|omp|json> --url https://cms.example.com --write --with-skill
 ```
 
-`--with-skill` also installs the [agent skill](../skills/kcms/SKILL.md), which teaches the editorial workflow (draft first, `expectedUpdatedAt`, SEO targets). Without `--write` the snippet is printed. Manual configuration per client:
+`--with-skill` also installs the [agent skill](../skills/kcms/SKILL.md), which teaches the editorial workflow (draft first, `expectedUpdatedAt`, SEO targets). `--with-skill kcms,kcms-frontend` adds the [frontend skill](../skills/kcms-frontend/SKILL.md) for agents that build the public website ([frontend-with-ai.md](frontend-with-ai.md)). Without `--write` the snippet is printed. Manual configuration per client:
 
 ### Claude Code
 
@@ -166,6 +166,10 @@ Behaviour worth knowing:
 - **Legacy bodies.** Documents whose body is still old rich text are returned converted to Markdown with `bodySource: "legacy-converted"`; writing a new body needs `acknowledgeLegacyConversion: true`.
 - **Drafts have no public URL.** Share `adminUrl` for review.
 - Errors come back as `code: message` (`invalid`, `conflict`, `locked`, `forbidden`, `not_found`, `unauthorized`, `internal`) so the agent can correct itself.
+
+### Building a frontend with AI
+
+The MCP tools are for editorial work. To have an agent build the public website itself, install the `kcms-frontend` skill (`kcms setup <tool> --write --with-skill kcms,kcms-frontend`) and write the site facts with `kcms frontend context --site <siteKey>` (anonymous, no key). The site it builds reads REST anonymously and never holds an API key. Full guide: [frontend-with-ai.md](frontend-with-ai.md).
 
 ## 4. CLI quickstart
 

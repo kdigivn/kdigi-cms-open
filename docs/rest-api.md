@@ -6,6 +6,8 @@ KDIGI CMS is built on Payload, so the generic Payload REST conventions apply (`w
 
 All examples use `https://cms.example.com` for the CMS and `example-site` for a site key.
 
+Building the site with an AI coding agent: see [frontend-with-ai.md](frontend-with-ai.md). The same contract is served as plain text for agents at `/llms.txt` and `/llms-full.txt` on every CMS host.
+
 ## Ground rules
 
 - **Read anonymously.** Frontends must call the API with **no cookie and no `Authorization` header**. Anonymous reads are filtered to public content. An authenticated request (admin session, or a user API key — `users` has `useAPIKey: true`) switches to tenant-scoped access, which returns **drafts and scheduled content** for the sites that user belongs to.

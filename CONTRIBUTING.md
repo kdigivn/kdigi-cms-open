@@ -45,7 +45,7 @@ If you changed the schema (collections/fields):
 3. `pnpm generate:importmap` if you added/renamed admin components.
 4. Migrations must be reversible, and must not assume an empty database. `CREATE TYPE` is **not** idempotent — guard it. A new collection needs its foreign-key column in `payload_locked_documents_rels` or the admin returns 500 (generated migrations include it; hand-written ones often forget). See [docs/upgrading.md](docs/upgrading.md).
 
-If you changed the public REST contract, update [docs/rest-api.md](docs/rest-api.md) in the same PR.
+If you changed the public REST contract, update [docs/rest-api.md](docs/rest-api.md) in the same PR, plus the agent skill `skills/kcms-frontend/` (especially `references/contract.md`), then run `pnpm generate:llms` — `pnpm test` fails while `public/llms.txt` / `public/llms-full.txt` are stale.
 
 ## Code conventions
 
