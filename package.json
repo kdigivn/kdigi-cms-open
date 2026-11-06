@@ -4,7 +4,7 @@
   "description": "KDIGI CMS — AI-native, open-source multi-site headless CMS with a built-in MCP server (Payload 3 + Next.js + Postgres)",
   "license": "MIT",
   "author": "KDIGI <https://kdigi.vn>",
-  "homepage": "https://opencms.kdigi.vn",
+  "homepage": "https://cms.kdigi.vn",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kdigivn/kdigi-cms-open.git"

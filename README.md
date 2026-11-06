@@ -3,17 +3,17 @@
 **CMS headless AI-native mã nguồn mở: người biên tập và AI agent cùng quản lý nội dung của nhiều website trên một hệ thống.**
 Payload 3 · Next.js 15 · PostgreSQL · Máy chủ MCP & CLI `kcms` · Soạn thảo Markdown · SEO tích hợp · Giấy phép MIT
 
-🇬🇧 [English version](README.en.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Tài liệu: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Demo trực tiếp](https://app.opencms.kdigi.vn/admin)
+🇬🇧 [English version](README.en.md) · 🌐 [Website: cms.kdigi.vn](https://cms.kdigi.vn) · 📚 [Tài liệu: docs.cms.kdigi.vn](https://docs.cms.kdigi.vn) · 🧪 [Demo trực tiếp](https://app.cms.kdigi.vn/admin)
 
 KDIGI CMS là trang quản trị và API (REST + GraphQL) để quản lý nội dung cho nhiều website cùng lúc. Website công khai của bạn (Next.js, Astro, Nuxt, mobile app…) lấy nội dung qua API; CMS lo phần soạn thảo, SEO, media, phân quyền và di chuyển dữ liệu từ WordPress. **AI-native:** AI agent (Claude Code, Codex, Cursor, VS Code, OMP…) kết nối qua máy chủ MCP tích hợp sẵn để viết, sửa, hẹn giờ, đăng bài và kiểm tra SEO, với đúng vai trò và quyền của người dùng sở hữu API key, không cần plugin hay hệ thống đăng nhập thứ hai. Phù hợp với agency, blogger, doanh nghiệp nhỏ, đội nội dung dùng AI và người đang muốn rời WordPress.
 
 ## Dùng thử trực tiếp
 
-Mở <https://app.opencms.kdigi.vn/admin> và đăng nhập bằng tài khoản demo công khai:
+Mở <https://app.cms.kdigi.vn/admin> và đăng nhập bằng tài khoản demo công khai:
 
 | Email | Mật khẩu | Vai trò |
 | --- | --- | --- |
-| `demo@opencms.kdigi.vn` | `Demo@2026` | `editor`, chỉ thấy site `demo` |
+| `demo@cms.kdigi.vn` | `Demo@2026` | `editor`, chỉ thấy site `demo` |
 
 Đây là môi trường thử nghiệm dùng chung: tài khoản demo không đổi được email/mật khẩu/API key của chính nó, và nội dung site `demo` được đặt lại mỗi đêm (03:00, giờ Việt Nam). Đừng nhập dữ liệu thật. Cách bật cơ chế này cho site của bạn: [cấu hình](docs/configuration.md#public-demo-accounts-optional).
 
@@ -123,4 +123,4 @@ Rất hoan nghênh! Đọc [CONTRIBUTING.md](CONTRIBUTING.md) và [Quy tắc ứ
 
 ## Giấy phép
 
-[MIT](LICENSE) © 2026 [KDIGI](https://kdigi.vn). Website dự án: <https://opencms.kdigi.vn>.
+[MIT](LICENSE) © 2026 [KDIGI](https://kdigi.vn). Website dự án: <https://cms.kdigi.vn>.

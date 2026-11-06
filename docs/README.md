@@ -1,6 +1,6 @@
 # KDIGI CMS documentation
 
-Reference documentation for KDIGI CMS, an AI-native, open-source headless multi-site CMS (Payload 3 + Next.js 15 + PostgreSQL): editors work in the admin, frontends read REST/GraphQL, and AI agents write and publish through the built-in [MCP server](ai-integration.md). Website: <https://opencms.kdigi.vn> · hosted docs: <https://docs.opencms.kdigi.vn> · live demo: <https://app.opencms.kdigi.vn/admin> (credentials in the root [README](../README.en.md#try-it-live)). The reference docs are written in English (the [WordPress migration](wordpress-migration/README.md) guides are in Vietnamese); the root [README](../README.md) is in Vietnamese with an [English version](../README.en.md).
+Reference documentation for KDIGI CMS, an AI-native, open-source headless multi-site CMS (Payload 3 + Next.js 15 + PostgreSQL): editors work in the admin, frontends read REST/GraphQL, and AI agents write and publish through the built-in [MCP server](ai-integration.md). Website: <https://cms.kdigi.vn> · hosted docs: <https://docs.cms.kdigi.vn> · live demo: <https://app.cms.kdigi.vn/admin> (credentials in the root [README](../README.en.md#try-it-live)). The reference docs are written in English (the [WordPress migration](wordpress-migration/README.md) guides are in Vietnamese); the root [README](../README.md) is in Vietnamese with an [English version](../README.en.md).
 
 ## Start here
 

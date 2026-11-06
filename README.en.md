@@ -3,17 +3,17 @@
 **An AI-native, open-source headless CMS: editors and AI agents manage the content of many websites from one install.**
 Payload 3 · Next.js 15 · PostgreSQL · MCP server & `kcms` CLI · Markdown editor · Built-in SEO · MIT license
 
-🇻🇳 [Phiên bản tiếng Việt](README.md) · 🌐 [Website: opencms.kdigi.vn](https://opencms.kdigi.vn) · 📚 [Documentation: docs.opencms.kdigi.vn](https://docs.opencms.kdigi.vn) · 🧪 [Live demo](https://app.opencms.kdigi.vn/admin)
+🇻🇳 [Phiên bản tiếng Việt](README.md) · 🌐 [Website: cms.kdigi.vn](https://cms.kdigi.vn) · 📚 [Documentation: docs.cms.kdigi.vn](https://docs.cms.kdigi.vn) · 🧪 [Live demo](https://app.cms.kdigi.vn/admin)
 
 KDIGI CMS is an admin panel plus REST and GraphQL API for managing the content of several websites at once. Your public sites (Next.js, Astro, Nuxt, a mobile app…) read content over the API; the CMS handles editing, SEO, media, permissions and moving off WordPress. **AI-native:** AI agents (Claude Code, Codex, Cursor, VS Code, OMP, …) connect to the built-in MCP server to write, edit, schedule, publish and SEO-check content with exactly the role and sites of the user who owns the API key, with no plugin and no second login system. It suits agencies, bloggers, small businesses, content teams working with AI, and anyone leaving WordPress.
 
 ## Try it live
 
-Open <https://app.opencms.kdigi.vn/admin> and sign in with the public demo account:
+Open <https://app.cms.kdigi.vn/admin> and sign in with the public demo account:
 
 | Email | Password | Role |
 | --- | --- | --- |
-| `demo@opencms.kdigi.vn` | `Demo@2026` | `editor`, sees the `demo` site only |
+| `demo@cms.kdigi.vn` | `Demo@2026` | `editor`, sees the `demo` site only |
 
 This is a shared sandbox: the demo account cannot change its own email, password or API key, and the `demo` site is reset every night (03:00, Vietnam time). Do not enter real data. To enable the same protection on your own install see [configuration](docs/configuration.md#public-demo-accounts-optional).
 
@@ -123,4 +123,4 @@ Contributions are welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code
 
 ## License
 
-[MIT](LICENSE) © 2026 [KDIGI](https://kdigi.vn). Project website: <https://opencms.kdigi.vn>.
+[MIT](LICENSE) © 2026 [KDIGI](https://kdigi.vn). Project website: <https://cms.kdigi.vn>.

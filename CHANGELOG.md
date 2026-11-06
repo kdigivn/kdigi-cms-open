@@ -13,6 +13,10 @@ All notable changes to KDIGI CMS are documented here. The format follows [Keep a
 - Guide [docs/frontend-with-ai.md](docs/frontend-with-ai.md) ([Tiếng Việt](docs/frontend-with-ai.vi.md)).
 - Demo seed: a `trang-chu` front page, one draft post, and `Sites.pageGroup` keys `FRONT_PAGE` / `ABOUT` / `CONTACT` (missing keys are backfilled on existing demo sites; keys you set are kept).
 
+### Changed
+
+- Docs: public hosts moved to `cms.kdigi.vn` / `docs.cms.kdigi.vn` / `app.cms.kdigi.vn`; demo login is now `demo@cms.kdigi.vn` (password unchanged).
+
 ## [1.2.0] - 2026-11-03
 
 AI-native release. No database migrations; API-key sessions are restricted (see Changed).

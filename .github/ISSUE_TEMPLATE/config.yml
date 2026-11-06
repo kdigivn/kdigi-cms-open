@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/kdigivn/kdigi-cms-open/security/advisories/new
     about: Report security issues privately — never in a public issue.
   - name: Documentation
-    url: https://docs.opencms.kdigi.vn
+    url: https://docs.cms.kdigi.vn
     about: Read the docs and guides before opening an issue.
