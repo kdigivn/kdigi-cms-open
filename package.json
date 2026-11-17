@@ -31,6 +31,7 @@
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
     "migrate:down": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:down",
     "seed:demo": "cross-env NODE_OPTIONS=--no-deprecation node --env-file-if-exists=.env --import tsx src/seed/seed-demo.ts",
+    "seed:sinhduoc": "cross-env NODE_OPTIONS=--no-deprecation node --env-file-if-exists=.env --import tsx src/scripts/seed-sinhduoc-site.ts",
     "demo:reset": "cross-env NODE_OPTIONS=--no-deprecation node --env-file-if-exists=.env --import tsx src/seed/demo-reset.ts",
     "verify:deepseek": "node --env-file=.env --import tsx src/scripts/verify-deepseek-model.ts",
     "test:integration": "node --env-file-if-exists=.env --import tsx --test \"src/**/*.integration.test.ts\""
