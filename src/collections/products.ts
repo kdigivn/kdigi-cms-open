@@ -242,6 +242,7 @@ export const Products: CollectionConfig = {
                       type: 'select',
                       defaultValue: 'VND',
                       options: [
+                        { label: 'CAD', value: 'CAD' },
                         { label: 'VND', value: 'VND' },
                         { label: 'USD', value: 'USD' },
                         { label: 'EUR', value: 'EUR' },

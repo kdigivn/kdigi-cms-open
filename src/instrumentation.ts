@@ -10,6 +10,11 @@
  * Service namespace: kdigi
  */
 export async function register() {
+  // Node.js >= 22/25 introduces an unconfigured globalThis.localStorage stub that lacks getItem
+  if (typeof globalThis.localStorage !== 'undefined' && typeof (globalThis.localStorage as any).getItem !== 'function') {
+    delete (globalThis as any).localStorage
+  }
+
   // Only run on the Node.js runtime — not in Edge or browser contexts
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { NodeSDK } = await import('@opentelemetry/sdk-node')
